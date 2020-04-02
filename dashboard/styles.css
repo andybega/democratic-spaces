@@ -1,0 +1,69 @@
+input[type="number"] {
+  max-width: 80%;
+}
+
+input[type=checkbox] {
+                    transform: scale(0.8);
+           }
+           
+.leaflet-container { 
+  background-color: #F5F5F6; 
+}
+
+.panel {
+  padding: 2px;
+  border: none; 
+  background-color: #ffffff; 
+  max-width: 750px;
+  margin: auto;
+  }
+  
+.outer {
+  top: 40px;
+  left: 0; 
+  right: 0;
+  bottom: 0;
+}
+body, label, input, button, select { 
+  font-family: 'Helvetica Neue', Helvetica;
+  font-weight: 200;
+}
+h1, h2 { 
+  font-weight: 400; 
+  /*color: #861B58;*/
+  /*color: #002649;*/
+  color: #A51E36;
+  }
+h4, h3 { 
+  font-size: 125%; 
+  color: #002649;
+  }
+h5 { 
+  color: #002649;
+  }
+.popover {
+  color: #002649;
+  }
+a{ 
+   text-decoration: none; 
+        } 
+
+#mapPanel {
+  right: auto;
+}
+#barplotPanel1 {
+  left: -25px;
+}
+
+#barplot1 {
+  cursor: pointer;
+}
+#dataTable {
+  font-size: 95%;
+}
+#cite {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  font-size: 12px;
+}

@@ -1,0 +1,90 @@
+---
+title: "Calculate cutpoints"
+output: github_document
+---
+
+*Note (AB, 2020-03-24): the cutpoint calculations were originally done in a file called "1-dv_notes.Rmd", written by Rick. That file also created a memo/report. I split the cutpoint calculation part out because there was a circular dependency with "2-create-dv-data.Rmd", and adjusted the code accordingly to remove this problem. See issue #26 on GitHub to see the commit that created this file.*
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(stringr)
+
+source("../R/dv_notes_functions.R")
+
+if (packageVersion("states") < "0.2.2.9007") {
+  stop("Please re-install the latest dev version of states:\n  remotes::install_github(\"andybega/states\")")
+}
+```
+
+```{r}
+dv <- read_csv("../trafo-data/dv_data_1968_on.csv") %>%
+  select(-country_name, -country_id, -country_text_id) %>%
+  filter(complete.cases(.)) %>%
+  arrange(gwcode, year)
+
+dv_vars <- setdiff(names(dv), c("gwcode", "year"))
+dv_vars
+
+# Create variables for DV year to year changes
+dv_semi_long <- dv %>%
+  # pivot to long data frame so we can do all 6 variables at the same time
+  pivot_longer(-c(gwcode, year), names_to = "variable") %>%
+  group_by(gwcode, variable) %>%
+  arrange(gwcode, variable, year) %>%
+  dplyr::mutate(
+    # setting to 0 is missing, i.e. first year of independence
+    diff_y2y = c(0, diff(value)),
+  )  
+
+# now there are 2 value columns (for original var, and y2y_diff version); 
+# we can make it wide as is, but then have to fix some columns names ("value_")
+dv_semi_long
+
+# make wide again
+dv_with_diffs <- dv_semi_long %>%
+  pivot_wider(names_from = variable, values_from = c(value, diff_y2y)) %>%
+  arrange(gwcode, year) %>%
+  # take out "value_" prefix
+  setNames(names(.) %>% str_replace("value_", "")) %>%
+  # move "diff_y2y_" prefix to "_diff_y2y" suffix
+  setNames(names(.) %>% str_replace("diff_y2y_([a-z0-9\\_]+)", "\\1_diff_y2y"))
+  
+dv_with_diffs
+
+# make sure we did not mess up the original data values
+stopifnot(
+  all.equal(cor(dv_with_diffs$v2x_freexp_altinf, dv$v2x_freexp_altinf), 1)
+)
+
+# Mimic what dv_BaseDatFun does, but without the hidden data read
+dv_base_dat <- function(dv_name, dv_data) {
+  dat <- dv_data %>%
+    ungroup() %>%
+    select(gwcode, year, contains(dv_name)) %>%
+    rename(var = all_of(dv_name),
+           var_y2y = paste0(dv_name, "_diff_y2y")) %>%
+    filter(complete.cases(.)) %>%
+    mutate(case = case_when(var_y2y > 0 ~ "up",
+                            var_y2y < 0 ~ "down",
+                            TRUE ~ "no change"),
+           case = as.factor(case))
+  dat
+}
+
+cp <- list()
+for (dv_name in dv_vars) {
+  cat("\n\n", dv_name, "\n\n")
+  cp[[dv_name]] <- as_tibble(c(
+    indicator = dv_name, 
+    dv_cutpointFun(dv_base_dat(dv_name, dv_with_diffs))
+  ))
+  print(cp[[dv_name]])
+}
+
+
+cp <- bind_rows(cp)
+write_csv(cp, "../output-data/cutpoints.csv")
+```
+

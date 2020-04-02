@@ -1,0 +1,574 @@
+---
+title: "Combine data"
+output: 
+  github_document:
+    toc: true
+---
+
+## NOTES FOR DATA UPDATES
+
+END_YEAR denotes the last year data have been observed. I.e. usually it should be the year prior to the current year. 
+
+Data after this year will be discarded. E.g. to forecast 2020-2021 we don't want to use data after 2019 since it likely won't be available/incomplete at the time we are making the 2020-2021 forecasts. Conversely, if the data end early, e.g. in 2017, they will be lagged additionally so that they reach and cover the target year.
+
+Note also that the DV data are in a 2-year lead. So the data point for "dv_v2x_veracc_osp_down_next2" in 2019 refers to vertical accountability decreases in 2020-2021. 
+
+Several of the data sources below are imputed in some fashion after merging. E.g. if a data set has to be lagged 1 year to obtain values for the desired data end year, values for the first of independence for several states will become missing. When data are updated, these source-specific lags may change. Thus what cases are missing will change, and what does or does not get imputed will change. Check the output of all chunks below for new changes in missing case sets!
+
+
+```{r}
+END_YEAR <- 2019
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# needs devel version of states
+if (packageVersion("states") < "0.2.2.9007") {
+  stop("Please re-install the latest dev version of states:\n  remotes::install_github(\"andybega/states\")")
+}
+
+
+library("dplyr")
+library("readr")
+library("states")
+library("tidyr")
+
+# shortcut for plotting missing values when no date column is available
+plotmiss <- function(x) {
+  plot_missing(x, names(x), partial = "last")
+}
+```
+
+
+## Pieces
+
+### Master statelist
+
+```{r}
+cy <- read_csv("../trafo-data/country_year_set_1968_on.csv") %>%
+  filter(year > 1969, year <= END_YEAR)
+cy_names <- cy
+cy <- cy[, c("gwcode", "year")]
+```
+
+For spatial lagging, we cannot have overlapping geometries. For example in 1990 we cannot have both re-unified Germany from the end of the year, and then also separate West Germany and East Germany at the beginning of the year. Check against state panel to remove cases like this if needed. 
+
+```{r}
+master <- state_panel(1970, END_YEAR, partial = "last", by = "year")
+overlap <- compare(master, cy)
+report(overlap)
+```
+
+```{r}
+drop <- anti_join(cy, master)
+drop$drop <- TRUE
+cy <- left_join(cy, drop) %>%
+  mutate(drop = ifelse(is.na(drop), FALSE, drop))
+cy <- cy[!cy$drop, ]
+cy$drop <- NULL
+```
+
+
+```{r cy-missplot}
+plotmiss(cy)
+```
+
+
+### V-Dem DVs
+
+These are the indicators from which the outcome variables are derived. 
+
+```{r}
+dv <- read_csv("../trafo-data/dv_data_1968_on.csv") %>%
+  select(-country_name, -country_id, -country_text_id) %>%
+  filter(complete.cases(.)) %>%
+  arrange(gwcode, year)
+
+range(dv$year)
+```
+
+
+```{r code-dv}
+dv_data <- read_rds("../trafo-data/dv-data.rds")
+cy <- left_join(cy, dv_data, by = c("gwcode", "year"))
+```
+
+For outcome variable *x*, this code creates the following additional columns:
+
+- `[x]`: the raw outcome variable
+- `[x]_diff_y2y`: the year to year change
+- `dv_[x]_...`: versions starting with "dv_" should not be used as IVs
+  - `dv_[x]_change`: character vector of the current year change (up, same, down)
+  - `dv_[x]_[up, down]_next2`: 0/1 indicator, is there a up/down change in the next 2 years?
+  
+```{r}
+plotmiss(cy)
+```
+
+The missing are because the "next2" variables are missing for the last 2 years of available data since we don't have the 2 years of future outcomes yet.
+
+### V-Dem IVs
+
+```{r}
+vdem_dat <- read_csv("../trafo-data/vdem_data_1968_on.csv") %>%
+  select(-country_name, -country_id, -country_text_id) %>%
+  filter(complete.cases(.)) %>%
+  arrange(gwcode, year)
+
+# take out zero-variance vars
+sds <- sapply(vdem_dat, sd)
+zv_vars <- names(sds[sds==0])
+vdem_dat <- vdem_dat %>% select(-one_of(zv_vars))
+
+names(vdem_dat) <- stringr::str_replace(names(vdem_dat), "^lagged\\_", "")
+
+# check no DVs are here
+if (any(setdiff(names(vdem_dat), c("gwcode", "year")) %in% names(dv))) {
+  stop("Some DV variables are in V-Dem IV set, staaap")
+}
+
+vdem_dat <- vdem_dat %>%
+  filter(year <= END_YEAR)
+vdem_lag <- END_YEAR - max(vdem_dat$year)
+vdem_dat <- vdem_dat %>%
+  mutate(year = year + vdem_lag) %>%
+  setNames(c(names(.)[1:2], paste0("lag", vdem_lag, "_", names(.)[-c(1:2)])))
+
+vdem_lag
+str(vdem_dat)
+```
+
+```{r vdem-missplot}
+plotmiss(vdem_dat)
+```
+
+There are a couple of new missing country-years from tails (GDR, South Vietnam); fill those in with carry forward. 
+
+```{r}
+cy <- left_join(cy, vdem_dat, by = c("gwcode", "year")) %>%
+  arrange(gwcode, year) %>%
+  tidyr::fill(one_of(names(vdem_dat)), .direction = "down")
+```
+
+
+### State age
+
+```{r}
+age_dat <- read_csv("../input/gwstate-age.csv") %>%
+  filter(year <= END_YEAR) %>%
+  mutate(log_state_age = log(state_age))
+age_lag <- END_YEAR - max(age_dat$year)
+age_dat <- age_dat %>%
+  mutate(year = year + age_lag) %>%
+  setNames(c(names(.)[1:2], paste0("lag", age_lag, "_", names(.)[-c(1:2)])))
+
+age_lag
+str(age_dat)
+```
+
+```{r age-missplot}
+plotmiss(age_dat)
+```
+
+All states in their last year of existence. Add 1 to previous state age. 
+
+
+```{r}
+cy <- left_join(cy, age_dat, by = c("gwcode", "year")) %>%
+  arrange(gwcode, year) %>%
+  group_by(gwcode) %>%
+  mutate(lag0_state_age = case_when(
+    is.na(lag0_state_age) ~ tail(lag(lag0_state_age, 1), 1) + 1L,
+    TRUE ~ lag0_state_age
+  ),
+  lag0_log_state_age = log(lag0_state_age)) %>%
+  ungroup()
+```
+
+### Population
+
+```{r}
+pop_dat <- read_csv("../input/population.csv") %>%
+  filter(year <= END_YEAR) %>%
+  mutate(log_pop = log(pop))
+pop_lag <- END_YEAR - max(pop_dat$year)
+pop_dat <- pop_dat %>%
+  mutate(year = year + pop_lag) %>%
+  setNames(c(names(.)[1:2], paste0("lag", pop_lag, "_", names(pop_dat)[-c(1:2)])))
+
+pop_lag
+str(pop_dat)
+```
+
+```{r pop-missplot}
+plotmiss(pop_dat)
+```
+
+Check missing cases.
+
+```{r}
+cy_temp <- left_join(cy, pop_dat, by = c("gwcode", "year"))
+tbl <- filter(cy_temp, is.na(lag0_pop)) %>% select(gwcode, year, lag0_pop)
+tbl
+```
+
+No missing cases. 
+
+```{r}
+if (nrow(tbl) > 0) {
+  stop("Something has changed")
+}
+
+cy <- left_join(cy, pop_dat, by = c("gwcode", "year")) %>%
+  arrange(gwcode, year) %>%
+  tidyr::fill(contains("_pop"), .direction = "down")
+```
+
+```{r pop-missplot-2}
+plotmiss(pop_dat)
+```
+
+### Infant mortality
+
+```{r infmort-setup}
+infmort <- read_csv("../input/wdi-infmort-v2.csv") %>%
+  filter(year <= END_YEAR) 
+infmort_lag <- END_YEAR - max(infmort$year)
+infmort <- infmort %>%
+  mutate(year = year + infmort_lag) %>%
+  setNames(c(names(.)[1:2], paste0("lag", infmort_lag, "_", names(infmort)[-c(1:2)])))
+
+infmort_lag
+str(infmort)
+```
+
+Check missing cases.
+
+```{r infmort-missing}
+cy_temp <- left_join(cy, infmort, by = c("gwcode", "year"))
+tbl <- filter(cy_temp, is.na(lag2_infmort)) %>% select(gwcode, year, lag2_infmort)
+tbl
+```
+
+```{r infmort-missplot}
+plotmiss(infmort)
+```
+
+```{r infmort-join}
+cy <- left_join(cy, infmort, by = c("gwcode", "year")) %>%
+  arrange(gwcode, year) %>%
+  tidyr::fill(contains("_infmort"), .direction = "up")
+```
+
+
+### GDP
+
+```{r}
+gdp_dat <- read_csv("../input/gdp_1950_2017.csv") %>%
+  select(-date) %>%
+  filter(year <= END_YEAR) %>%
+  dplyr::rename(gdp = NY.GDP.MKTP.KD,
+                gdp_growth = NY.GDP.MKTP.KD.ZG,
+                gdp_pc = NY.GDP.PCAP.KD,
+                gdp_pc_growth = NY.GDP.PCAP.KD.ZG) %>%
+  mutate(log_gdp = log(gdp),
+         gdp = NULL,
+         log_gdp_pc = log(gdp_pc),
+         gdp_pc = NULL)
+gdp_lag <- END_YEAR - max(gdp_dat$year)
+gdp_dat <- gdp_dat %>%
+  mutate(year = year + gdp_lag) %>%
+  setNames(c(names(.)[1:2], paste0("lag", gdp_lag, "_", names(gdp_dat)[-c(1:2)])))
+
+
+gdp_lag
+str(gdp_dat)
+
+```
+
+```{r gdp-missplot}
+plotmiss(gdp_dat)
+```
+
+Missing some first years due to lagging; fill them with first observed value. 
+
+```{r}
+cy <- left_join(cy, gdp_dat, by = c("gwcode", "year")) %>%
+  arrange(gwcode, year) %>%
+  tidyr::fill(contains("_gdp"), .direction = "up")
+```
+
+### EPR
+
+```{r}
+epr_dat <- read_csv("../input/epr-yearly.csv") %>%
+  select(-date) %>%
+  filter(year <= END_YEAR)
+epr_lag <- END_YEAR - max(epr_dat$year)
+epr_dat <- epr_dat %>%
+  mutate(year = year + epr_lag) %>%
+  setNames(c(names(.)[1:2], paste0("lag", epr_lag, "_", names(epr_dat)[-c(1:2)])))
+
+
+epr_lag
+str(epr_dat)
+
+```
+
+```{r epr-missplot}
+plotmiss(epr_dat)
+```
+
+Missing some first years due to lagging; fill them with first observed value. 
+
+```{r}
+cy <- left_join(cy, epr_dat, by = c("gwcode", "year")) %>%
+  arrange(gwcode, year) %>%
+  tidyr::fill(contains("_epr_"), .direction = "up")
+```
+
+### P&T Coups
+
+```{r}
+coup_dat <- read_csv("../input/ptcoups.csv") %>%
+  filter(year <= END_YEAR)
+coup_lag <- END_YEAR - max(coup_dat$year)
+coup_dat <- coup_dat %>%
+  mutate(year = year + coup_lag) %>%
+  setNames(c(names(.)[1:2], paste0("lag", coup_lag, "_", names(.)[-c(1:2)])))
+
+coup_lag
+str(coup_dat)
+```
+
+```{r coup-missplot}
+plotmiss(coup_dat)
+```
+
+Missing some first years due to lagging; fill them with first observed value. 
+
+```{r}
+cy_temp <- left_join(cy, coup_dat, by = c("gwcode", "year")) 
+tbl <- filter(cy_temp, is.na(lag0_pt_coup)) %>% select(gwcode, year)
+tbl
+```
+
+No missing cases. 
+
+```{r}
+if (nrow(tbl) > 0) {
+  stop("Something has changed")
+}
+
+cy <- left_join(cy, coup_dat, by = c("gwcode", "year")) %>%
+  arrange(gwcode, year) %>%
+  tidyr::fill(contains("_pt_coup"), contains("_pt_failed_coup"), .direction = "down")
+```
+
+### ACD
+
+```{r}
+acd_dat <- read_csv("../input/acd.csv") %>%
+  filter(year <= END_YEAR) %>%
+  select(gwcode, year, everything())
+acd_lag <- END_YEAR - max(acd_dat$year)
+acd_dat <- acd_dat %>%
+  mutate(year = year + acd_lag) %>%
+  setNames(c(names(.)[1:2], paste0("lag", acd_lag, "_", names(.)[-c(1:2)])))
+
+acd_lag
+str(acd_dat)
+```
+
+
+```{r acd-missplot}
+plotmiss(acd_dat)
+```
+
+Fill in initial years and check there are no missing values left after that. 
+
+```{r}
+cy_temp <- left_join(cy, acd_dat, by = c("gwcode", "year")) %>%
+  arrange(gwcode, year) %>%
+  tidyr::fill(contains("_internal_confl"), contains("_war"), 
+              contains("_any_conflict"), contains("_ext_conf"),
+              .direction = "up")
+tbl <- filter(cy_temp, is.na(lag1_internal_confl)) %>% select(gwcode, year)
+tbl
+```
+
+All good.
+
+```{r}
+if (nrow(tbl) > 0) {
+  stop("Something has changed")
+}
+
+cy <- left_join(cy, acd_dat, by = c("gwcode", "year")) %>%
+  arrange(gwcode, year) %>%
+  tidyr::fill(contains("_internal_confl"), contains("_war"), 
+              contains("_any_conflict"), contains("_ext_conf"),
+              .direction = "up")
+```
+
+### Archigos leader info
+
+```{r arch-setup}
+arch <- read_rds("../input/archigos_cy.rds") %>%
+  filter(year <= END_YEAR) 
+arch_lag <- END_YEAR - max(arch$year)
+arch <- arch %>%
+  mutate(year = year + arch_lag) %>%
+  setNames(c(names(.)[1:2], paste0("lag", arch_lag, "_", names(arch)[-c(1:2)])))
+
+arch_lag
+str(arch)
+```
+
+Check missing cases.
+
+```{r arch-missing}
+cy_temp <- left_join(cy, arch, by = c("gwcode", "year"))
+tbl <- filter(cy_temp, is.na(lag1_ldr_age)) %>% select(gwcode, year, lag1_ldr_age)
+tbl
+```
+
+All are first year of independence.
+
+```{r arch-missplot}
+arch %>% 
+  filter(year > 1968) %>%
+  plotmiss(.)
+```
+
+Carry-forward impute any cases that are missing the most recent year. First year of independence os also missing for several countries. Carry-back impute. Do this after joining to master list because "arch" is plain missing those country-year rows. 
+
+```{r arch-join}
+cy <- left_join(cy, arch, by = c("gwcode", "year")) %>%
+  arrange(gwcode, year) %>%
+  tidyr::fill(contains("_ldr"), .direction = "down") %>%
+  # carry-back impute missing in first year of independence
+  tidyr::fill(contains("_ldr"), .direction = "up") 
+```
+
+## Summarize and write final output
+
+```{r summarize-columns}
+str(cy)
+
+range(cy$year)
+
+length(unique(cy$gwcode))
+
+length(unique(cy$gwcode[cy$year==max(cy$year)]))
+```
+
+Countries covered
+
+```{r}
+coverage <- cy %>%
+  pull(gwcode) %>%
+  country_names(., shorten = TRUE) %>%
+  unique() %>%
+  sort() 
+
+# write to file so changes are easier to see
+write_csv(data.frame(country = coverage), "../output-data/country-coverage.csv")
+
+coverage %>%
+  paste0(collapse = "; ") %>%
+  strwrap()
+```
+
+Countries not covered
+
+```{r}
+data("gwstates")
+gwstates %>% 
+  filter(start < "1970-01-01", end > "2019-01-01") %>%
+  mutate(country_name = country_names(gwcode, shorten = TRUE)) %>%
+  select(gwcode, country_name) %>%
+  anti_join(cy, by = c("gwcode")) %>%
+  pull(country_name) %>%
+  unique() %>%
+  sort() %>%
+  paste0(collapse = "; ")
+```
+
+Keep track of variables as well (for git).
+
+```{r}
+vars <- data.frame(Variables = names(cy))
+
+# write to file so changes are easier to see
+write_csv(vars, "../output-data/variables-in-dataset.csv")
+```
+
+
+### Record missing cases
+
+```{r final-missplot}
+plotmiss(cy)
+```
+
+
+Write all incomplete cases to a CSV so changes introduced by something in one of the input datasets is easier to notice:
+
+```{r}
+format_years <- function(x) {
+  if (length(x) > 1) {
+    return(paste(range(x), collapse = " - "))
+  }
+  as.character(x)
+}
+
+incomplete_cases <- cy %>%
+  gather(var, value, -gwcode, -year) %>%
+  filter(is.na(value)) %>%
+  # disregard missing DV values for last 2 years
+  filter(!(substr(var, 1, 3)=="dv_" & year %in% (max(year) + c(-1, 0)))) %>%
+  group_by(gwcode, year, var) %>%
+  summarize() %>%
+  # summarize which vars are missing
+  group_by(gwcode, year) %>%
+  summarize(missing_values_in = paste0(var, collapse = ", ")) 
+
+# if there are no missing cases, stop; otherwise 
+# add in year sequences ID so we can collapse adjacent years with same 
+# missing var
+if (nrow(incomplete_cases) > 0) {
+  incomplete_cases <- incomplete_cases %>%
+    group_by(gwcode) %>%
+    arrange(year) %>%
+    mutate(date = as.Date(paste0(year, "-01-01")),
+           yr_id = id_date_sequence(date, "year")) %>%
+    group_by(gwcode, yr_id, missing_values_in) %>%
+    summarize(year = format_years(year)) %>%
+    # clean up
+    ungroup() %>%
+    select(gwcode, year, missing_values_in) %>%
+    arrange(years, gwcode)
+}
+
+  
+write_csv(incomplete_cases, "../output-data/incomplete.cases.csv")
+```
+
+
+### Missing values by column
+
+```{r summarize-missing-value}
+sapply(cy, function(x) sum(is.na(x))) %>%
+  as.list() %>%
+  tibble::enframe(name = "Variable", value = "Missing") %>%
+  unnest(Missing) %>%
+  filter(Missing > 0) %>%
+  knitr::kable()
+```
+
+
+```{r}
+write_rds(cy, "../output-data/states.rds")
+```
+

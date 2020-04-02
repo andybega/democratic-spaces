@@ -1,0 +1,14 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.DS_Store
+*.Rapp.history
+
+# Some of the modelrunner output consists of saved models and forecast chunks
+# that are later combined into the complete forecast data. These are quite
+# big and not needed. Keep root files and log files on git, but not model and
+# chunk folders. The model folder is 5GB in total; the chunks are not needed
+# since they are combined into the final forecast file.
+modelrunner/output/*/
+!modelrunner/output/log

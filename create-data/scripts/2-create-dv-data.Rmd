@@ -1,0 +1,203 @@
+---
+title: "Create DV data"
+output: 
+  github_document:
+    toc: true
+---
+
+This script applies the cutpoints to the raw DV indicators to create the actual targets that we will use for the models, i.e. indicators for an up or down movement over the 2 years following the year in a row/observation. These targets are denoted with a "_next2" suffix, as well as the direction ("up", "down") in which they go.
+
+Inputs:
+
+- `trafo-data/dv_data_1968_on.csv`
+- `output-data/cutpoints.csv`
+
+Outputs:
+
+The main output is:
+
+- `trafo-data/dv-data.rds`
+
+The script also writes CSV files for the target outcome variables, so that changes are easier to identify on git. 
+
+- `output-data/dv-lists/[vdem indicator].csv`
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library("dplyr")
+library("readr")
+library("states")
+library("tidyr")
+library("zoo")
+library("demspaces")
+library("skimr")
+
+# shortcut for plotting missing values when no date column is available
+plotmiss <- function(x) {
+  plot_missing(x, names(x), partial = "last")
+}
+
+# needs devel version of states
+if (packageVersion("states") < "0.2.2.9007") {
+  stop("Please re-install the latest dev version of states:\n  remotes::install_github(\"andybega/states\")")
+}
+```
+
+```{r}
+dv <- read_csv("../trafo-data/dv_data_1968_on.csv") %>%
+  select(-country_name, -country_id, -country_text_id) %>%
+  filter(complete.cases(.)) %>%
+  arrange(gwcode, year)
+
+range(dv$year)
+```
+
+
+```{r code-dv}
+cutpoints <- read_csv("../output-data/cutpoints.csv")
+cp <- cutpoints[["up"]]
+names(cp) <- cutpoints[["indicator"]]
+
+dv_vars <- setdiff(names(dv), c("gwcode", "year"))
+
+dv_piece <- list()
+for (var_i in dv_vars) {
+  dv_i <- dv
+  dv_i <- dv %>%
+    select(gwcode, year, !!var_i) %>%
+    group_by(gwcode) %>%
+    arrange(gwcode, year) %>%
+    dplyr::mutate(
+      # witches' magic that creates a 'dv_i' column that contains values as if in 
+      # base R we did dv[, dv_i]; from now on i'll use dv_i for the remaining
+      # computations
+      var = !!rlang::sym(var_i),
+      lag1_var = lag(var, 1L),
+      y2y_diff_var = (var - lag1_var),
+      # set y2y_diff to 0 if missing (first year of independence)
+      y2y_diff_var = ifelse(is.na(y2y_diff_var), 0, y2y_diff_var)
+    ) 
+  dv_i <- dv_i %>%
+    mutate(var_change = case_when(
+      y2y_diff_var > cp[[var_i]]  ~ "up",
+      y2y_diff_var < -cp[[var_i]] ~ "down",
+      year==min(year)      ~ "first year of independence",
+      is.na(y2y_diff_var) & year!=min(year) ~ NA_character_,
+      TRUE ~ "same"
+    ))
+  dv_i <- dv_i %>%
+    mutate(up = as.integer(var_change=="up"),
+           lead1_up = lead(up, 1L),
+           lead2_up = lead(up, 2L),
+           next2_up = pmax(lead1_up, lead2_up),
+           down = as.integer(var_change=="down"),
+           lead1_down = lead(down, 1L),
+           lead2_down = lead(down, 2L),
+           next2_down = pmax(lead1_down, lead2_down)
+    ) 
+  # some states end during the data period; in these cases we can safely code
+  # DV=0 since they are not really censored. 
+  dv_i <- dv_i %>%
+    ungroup() %>%
+    mutate(
+      next2_up = case_when(
+        is.na(next2_up)   & (year < (max(year) - 1)) ~ 0L,
+        TRUE ~ next2_up),
+      next2_down = case_when(
+        is.na(next2_down) & (year < (max(year) -1)) ~ 0L,
+        TRUE ~ next2_down
+      ))
+  # rename variables
+  dv_i <- dv_i %>%
+    select(gwcode, year, var, lag1_var, y2y_diff_var, var_change, up, next2_up,
+           down, next2_down) %>%
+    setNames(c("gwcode", "year", paste0(var_i, c("", "_lag1", "_diff_y2y", 
+                                                 "_change", "_up", "_up_next2", 
+                                                 "_down", "_down_next2"))))
+  
+  dv_to_join <- select(dv_i, gwcode, year, !!var_i, ends_with("diff_y2y"), 
+                       ends_with("change"), ends_with("next2"), 
+                       ends_with("up"), ends_with("down")) %>%
+    # sub in the actual variable name, not the placeholders
+    setNames(c("gwcode", "year", paste0("", names(.)[3:ncol(.)]))) %>%
+    # prepend "dv" to vars we should use as IVs
+    rename_at(vars(ends_with("change"), ends_with("next2")), ~ paste0("dv_", .))
+  
+  dv_piece[[var_i]] <- dv_to_join
+}
+```
+
+Write the pieces to CSV files so we can quickly see on git when anything changes.
+
+```{r}
+for (i in seq_along(dv_piece)) {
+  var_i <- names(dv_piece)[i]
+  dv_to_join <- dv_piece[[var_i]]
+  dv_to_join <- dv_to_join %>% select(-ends_with("_up"), -ends_with("_down"),
+                                      -starts_with("v2"))
+  fn <- paste0(var_i, ".csv")
+  write_csv(dv_to_join, file.path("../output-data/dv-lists", fn))
+}
+```
+
+Combine into one large DV set. 
+
+```{r}
+dv_data <- Reduce(left_join, x = dv_piece)
+```
+
+Add moving averages and other history-type variables of DVs. 
+
+```{r}
+ma5 <- function(x) {
+  rollapply(x, width = 5, FUN = mean, fill = 0, align = "right", partial = TRUE)
+}
+
+ma10 <- function(x) {
+  rollapply(x, width = 10, FUN = mean, fill = 0, align = "right", partial = TRUE)
+}
+
+dv_data = dv_data %>%
+  group_by(gwcode) %>%
+  arrange(year) %>%
+  mutate_at(vars(ends_with("up"), ends_with("down")), list(ma5 = ma5, ma10 = ma10)) %>%
+  ungroup()
+```
+
+Add squared transformations for space indicators. Changes seem to be more common at middle values and less common in high and low (partly because beyond some range a change is impossible). 
+
+```{r}
+data("spaces")
+stopifnot(all(spaces$Indicator %in% names(dv_data)))
+dv_data = dv_data %>%
+  mutate_at(vars(one_of(spaces$Indicator)), list(squared = ~`^`(., 2)))
+```
+
+Take out the plain up and down dv versions.
+
+```{r}
+dv_data <- dv_data %>%
+  select(-ends_with("up"), -ends_with("down"))
+
+range(dv_data$year)
+
+write_rds(dv_data, "../trafo-data/dv-data.rds")
+```
+
+Check the values for one outcome/country to make sure they make sense:
+
+```{r}
+dv_data %>%
+  filter(gwcode==310) %>%
+  select(gwcode, year, contains("veracc")) %>%
+  filter(year > 2010)
+```
+
+
+```{r}
+skim(dv_data)
+```
+
