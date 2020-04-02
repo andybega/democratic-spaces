@@ -1,0 +1,63 @@
+---
+title: "Democratic Spaces Barometer"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This repo contains the code and data needed to reproduce and update the Democratic Space Barometer forecasts. 
+
+The repo is organized into three self-contained folders:
+
+- `create-data/`: combine V-Dem and other data sources into the historical data that is used to code the dependent variables and estimate the forecast models
+- `modelrunner/`: contains the random forest forecast models and will generate both the test and live forecasts
+- `dashboard/`: the R Shiny dashboard at the V-Dem website
+
+The folders are self-contained in the sense that each has a copy of the inputs it needs to run, and will not reach into other folders to pull code or data. For example, `modelrunner` saves the forecasts to `output/fcasts-rf.csv`, and `dashboard` contains a copy of these forecasts in `Data/fcasts-rf-2020.csv`. *(This also means that if there are any changes in relevant data, they need to be manually copied over.)*
+
+The `forecasts/` folder contains a record of the forecasts we made in 2019 and updated forecasts from March 2020, when V-Dem version 10 was released. 
+
+## Setup
+
+The R packages needed to run all code in this repo are listed in `required-packages.txt`. To check and install them all, try:
+
+```r
+packs <- readLines("required-packages.txt")
+need  <- packs[!packs %in% rownames(installed.packages())]
+need
+install.packages(need)
+```
+
+## Reproducing the forecasts
+
+1. In `create-data/`, run the data munging scripts in the `scripts/` folder to recreate the final data, `output-data/states.rds`. See `create-data/README.md` for more details.
+2. In `modelrunner/`, run `R/rf.R` to run the forecast models and create the test and live forecasts. See `modelrunner/README.md` for more details.
+3. Update the forecast data in `dashboard`.
+
+## Updates
+
+*Note: the v9 to v10 update process was before some file changes and cleaning, so probably future updates will require adjusting and updating the steps below.*
+
+To update the forecasts:
+
+1. Update the input data sources in `create-data/input` as needed.
+2. Re-run each data munging script in `create-data/scripts`. This will probably require some changes here and there, e.g. if sets of missing values have changed, and thus should be done interactively (i.e. don't source the scripts and assume everything is ok).
+3. Copy the updated `states.rds` data to `modelrunner/input/`. 
+4. Adjust the end year in `modelrunner/R/rf.R` line 56 and re-run.
+5. Copy `modelrunner/output/fcasts-rf.csv` to `dashboard/data/`.
+
+## System info
+
+```{r}
+sessionInfo()
+```
+
+```{r}
+packs <- readLines("required-packages.txt")
+installed <- as.data.frame(installed.packages(), stringsAsFactors = FALSE)
+packs <- installed[installed$Package %in% packs, c("Package", "Version")]
+rownames(packs) <- NULL
+packs
+```

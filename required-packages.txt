@@ -4,7 +4,9 @@ dplyr
 future
 glmnet
 here
+highcharter
 jsonlite
+leaflet
 lgr
 magrittr
 ranger
@@ -13,6 +15,9 @@ rgdal
 rgeos
 rmapshaper
 sf
+shiny
+shinyBS
+shinyWidgets
 skimr
 states
 stringr
