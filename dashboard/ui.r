@@ -48,10 +48,10 @@ navbarPage("The Democratic Space Barometer",
       fluidRow(
         column(3,
                radioButtons("direction", h4("Type"),
-                            choiceNames = list(tags$span(style = "font-size: 100%; font-weight:bold; color: #0082BA; ", "Opening Event"), 
-                                               tags$span(style = "font-size: 100%; font-weight:bold; color: #F37321; ", "Closing Event")),
-                            choiceValues = c("Opening", "Closing"),
-                            selected = "Opening",
+                            choiceNames = list(tags$span(style = "font-size: 100%; font-weight:bold; color: #F37321; ", "Closing Event"), 
+                                               tags$span(style = "font-size: 100%; font-weight:bold; color: #0082BA; ", "Opening Event")),
+                            choiceValues = c("Closing", "Opening"),
+                            selected = "Closing",
                             inline = F)),
         column(3,
                # div(class = "option-group",
@@ -195,7 +195,7 @@ navbarPage("The Democratic Space Barometer",
                  
                  wellPanel(class = "panel panel-default",
                            fluidRow(
-                             column(12, h3("The Democratic Space Barometer is the product of a collaboration between Andy Beger (Predictive Heuristics), Rick Morgan (V-Dem), Laura Maxwell (V-Dem), and Bret Barrowman (IRI).", br(),  br(), "The six conceptual dimensions we focus on come from IRI's Closing Space Barometer, which includes an analytical framework for assessing the processes that facilitate a substantial reduction (closing events) within these six spaces. This framework was developed based on a series of workshops conducted with DRG donors and implementing partners in 2016 and represent the conceptual features of democratic space which are most amenable to interventions.", br(),  br(), "We adapted these conceptual spaces, expanded the scope to include substantial improvements (opening events), and developed an operationalization method to identify opening and closing events within each space. This dashboard, and the forecast that drive it, is the output of these efforts.")))),
+                             column(12, h3("The Democratic Space Barometer is the product of a collaboration between Andy Beger (Predictive Heuristics), Rick Morgan (V-Dem), and Laura Maxwell (V-Dem).", br(),  br(), "The six conceptual dimensions we focus on come from the International Republican Institute’s Closing Space Barometer, which includes an analytical framework for assessing the processes that facilitate a substantial reduction (closing events) within these six spaces. This framework was developed based on a series of workshops conducted with Democracy, Human Rights, and Governance (DRG) donors and implementing partners in 2016 and represent the conceptual features of democratic space which are most amenable to DRG assistance programs.", br(),  br(), "We adapted these conceptual spaces, expanded the scope to include substantial improvements (opening events), and developed an operationalization method to identify opening and closing events within each space. This dashboard, and the forecast that drive it, is the output of these efforts.")))),
                  
                  wellPanel(class = "panel panel-default",
                            fluidRow(
