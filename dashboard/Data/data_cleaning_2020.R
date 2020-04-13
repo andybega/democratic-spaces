@@ -7,9 +7,7 @@
 #   Input:
 #     - fcasts-rf-2020.csv: forecasts created in March 2020;
 #       from modelrunnner/output/fcasts-rf.csv (file has just been renamed)
-#     - vdem_data_1968-2019.csv: copied from create-data/trafo-data/
-#     - vdem_regions.csv
-#     - new_map_data.rds
+#     - dv_data_1968_on.csv: from create-data/scripts/0-split-raw-vdem.R
 #
 #   Output:
 #     - new_map_dat2.rds
@@ -25,17 +23,10 @@ library(sf)
 library(rmapshaper)
 library(rgeos)
 library(rgdal)
-<<<<<<< HEAD
 library(cshapes)
 library(here)
 
 setwd(here::here("dashboard/Data/"))
-# getwd()
-=======
-library(here)
-
-setwd(here::here("dashboard/Data/"))
->>>>>>> e60be5541c0c064d56705231b5a257f9dfa84f35
 
 iri_dat <- read.csv("fcasts-rf-2020.csv", stringsAsFactors = F)
 current_forecast <- iri_dat %>%
@@ -45,11 +36,6 @@ outcomes <- unique(iri_dat$outcome)
 dvs <- read_csv("dv_data_1968_on.csv") %>% 
   filter(year >= 2000)
 
-<<<<<<< HEAD
-=======
-dvs <- readRDS("states.rds") %>% filter(year >= 2000)
-dvs %<>% left_join(regions)
->>>>>>> e60be5541c0c064d56705231b5a257f9dfa84f35
 current_dvs <- dvs %>%
   dplyr::select(gwcode, year, country_name, country_id, country_text_id, e_regionpol_6C,
                 v2x_veracc_osp, v2xcs_ccsi, v2xcl_rol, v2x_freexp_altinf, v2x_horacc_osp, v2x_pubcorr) %>%
@@ -115,8 +101,6 @@ all_forecast_data$popUp_text_up <- paste('<h3><b>', all_forecast_data$country_na
                                          paste('<b><span style="color:#002649"> ',all_forecast_data$names,' Level in 2019: ', all_forecast_data$level_2019, '</b></span><br>', sep = ''),
                                          paste('<b><span style="color:#002649"> ',all_forecast_data$names,' Change 2018-2019: ', all_forecast_data$change_2019, '</b></span>', sep = ''),sep = '')
 
-
-<<<<<<< HEAD
 all_forecast_data$popUp_text_down <- paste('<h3><b>', all_forecast_data$country_name,'</b></h3>', 
                                            '<h5><span style="color:#002649">Event probabilities for the <b>', all_forecast_data$names, ' Space</b> <span style="font-size: 80%">(', all_forecast_data$thres, ' change in the <b>', all_forecast_data$index_name, '</b>)</span></h5>',
                                            paste('<b><span style="color:#F37321">Closing Event: ',floor(all_forecast_data$p_down * 100), '%</b></span><br>', sep = ''), 
@@ -127,9 +111,7 @@ all_forecast_data$popUp_text_down <- paste('<h3><b>', all_forecast_data$country_
                                            paste('<b><span style="color:#002649"> ',all_forecast_data$names,' Level in 2019: ', all_forecast_data$level_2019, '</b></span><br>', sep = ''),
                                            paste('<b><span style="color:#002649"> ',all_forecast_data$names,' Change 2018-2019: ', all_forecast_data$change_2019, '</b></span>', sep = ''),sep = '')
 
-
-=======
- all_forecast_data$popUp_text_down <- paste('<h3><b>', all_forecast_data$country_name,'</b></h3>',
+all_forecast_data$popUp_text_down <- paste('<h3><b>', all_forecast_data$country_name,'</b></h3>',
                                             '<h5><span style="color:#002649">Event probabilities for the <b>', all_forecast_data$names, ' Space</b> <span style="font-size: 80%">(', all_forecast_data$thres, ' change in the <b>', all_forecast_data$index_name, '</b>)</span></h5>',
                                             paste('<b><span style="color:#F37321">Closing Event: ',floor(all_forecast_data$p_down * 100), '%</b></span><br>', sep = ''),
                                             paste('<b><span style="color:#777778">Stable: ',floor(all_forecast_data$p_same * 100), '%</b></span><br>', sep = ''),
@@ -138,10 +120,9 @@ all_forecast_data$popUp_text_down <- paste('<h3><b>', all_forecast_data$country_
                                             paste('<b><span style="color:#0082BA"> Opening </span><span style="color:#002649">Risk Ranking: ', all_forecast_data$up_rank, '</b></span><br>', sep = ''),
                                             paste('<b><span style="color:#002649"> ',all_forecast_data$names,' Level in 2019: ', all_forecast_data$level_2019, '</b></span><br>', sep = ''),
                                             paste('<b><span style="color:#002649"> ',all_forecast_data$names,' Change 2018-2019: ', all_forecast_data$change_2019, '</b></span>', sep = ''),sep = '')
->>>>>>> e60be5541c0c064d56705231b5a257f9dfa84f35
+
 ##join this to the map shp file
 GW_shp_file <- cshapes::cshp(date = as.Date("2013/01/01"), useGW = TRUE)
-# names(GW_shp_file@data)
 GW_shp_file@data$gwcode <- GW_shp_file@data$GWCODE
 GW_shp_file@data <- GW_shp_file@data %>%
   select(-GWCODE)
@@ -157,51 +138,21 @@ forecast_colors <- all_forecast_data %>%
   dplyr::select(gwcode, country_name, year, outcome, map_color_up, map_color_down, p_up, p_down, p_same, popUp_text_up, popUp_text_down, level_2019, change_2019) %>%
   pivot_wider(names_from = outcome, values_from = c(map_color_down, map_color_up, level_2019, change_2019, p_up, p_down, p_same, popUp_text_up, popUp_text_down))
 
-<<<<<<< HEAD
 GW_shp_file@data <- GW_shp_file@data %>% 
   left_join(forecast_colors) 
-=======
-GW_shp_file_new@data <- GW_shp_file_new@data[,-c(25:33,36)] %>%
-  left_join(forecast_colors)
->>>>>>> e60be5541c0c064d56705231b5a257f9dfa84f35
 
 ids <- NULL
 for(i in 1:195){
-<<<<<<< HEAD
   id <- GW_shp_file@polygons[[i]]@ID
   ids <- c(ids, id)
   }
 row.names(GW_shp_file@data) <- ids
-=======
-  id <- GW_shp_file_new@polygons[[i]]@ID
-  ids <- c(ids, id)}
-row.names(GW_shp_file_new@data) <- ids
-#simplified <- SpatialPolygonsDataFrame(simplified_shp, data = GW_shp_file_new@data)
-#GW_shp_file_new <- simplified
-GW_shp_file_new2 <- rmapshaper::ms_simplify(GW_shp_file_new, keep = 0.2)
-# object.size(GW_shp_file_new)
-# object.size(GW_shp_file_new2)
-# %>%
-#   mutate_at(contains("map_color"), replace_na("#D0D0D1"))
-#
-# str(GW_shp_file_new@data$map_color_up_v2x_horacc_osp)
-# GW_shp_file_new@data[is.na(GW_shp_file_new@data$year), c("CNTRY_NAME", "map_color_up_v2x_horacc_osp")]
->>>>>>> e60be5541c0c064d56705231b5a257f9dfa84f35
 
 GW_shp_file_new2 <- rmapshaper::ms_simplify(GW_shp_file, keep = 0.2)
 # object.size(GW_shp_file)
 # object.size(GW_shp_file_new2)
 
-<<<<<<< HEAD
 write_rds(GW_shp_file_new2, "new_map_dat2.rds")
-=======
-
-#figure out a way to have a popup for no data countries
-
-#GW_shp_file@data$popUp_text <- str_replace_all(popUp_text0, "NA%", "No Data")
-write_rds(GW_shp_file_new2, "new_map_dat2.rds")
-#write_rds(GW_shp_file_new2, "new_map_dat2.rds")
->>>>>>> e60be5541c0c064d56705231b5a257f9dfa84f35
 
 country_characteristic_dat <- dvs %>%
   dplyr::select(gwcode, year, country_name,
@@ -244,9 +195,5 @@ rank_data_down <- all_forecast_data %>%
   arrange(desc(p_down)) %>%
   dplyr::mutate(rank = row_number(), color_prob = map_color_down, risk_2019 = p_down) %>%
   filter(rank <= 20)
-<<<<<<< HEAD
-=======
 
->>>>>>> e60be5541c0c064d56705231b5a257f9dfa84f35
 write_rds(rank_data_down, "rank_data_down.rds")
-

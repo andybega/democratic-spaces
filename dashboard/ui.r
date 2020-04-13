@@ -195,7 +195,7 @@ navbarPage("The Democratic Space Barometer",
 
                  wellPanel(class = "panel panel-default",
                            fluidRow(
-                             column(12, h3("The Democratic Space Barometer is the product of a collaboration between Andreas Beger (Predictive Heuristics), Rick Morgan (V-Dem), and Laura Maxwell (V-Dem).", br(),  br(), "The six conceptual dimensions we focus on come from the International Republican Institute’s Closing Space Barometer, which includes an analytical framework for assessing the processes that facilitate a substantial reduction (closing events) within these six spaces. This framework was developed based on a series of workshops conducted with Democracy, Human Rights, and Governance (DRG) donors and implementing partners in 2016 and represent the conceptual features of democratic space which are most amenable to DRG assistance programs.", br(),  br(), "We adapted these conceptual spaces, expanded the scope to include substantial improvements (opening events), and developed an operationalization method to identify opening and closing events within each space. This dashboard, and the forecast that drive it, is the output of these efforts.")))),
+                             column(12, h3("The Democratic Space Barometer is the product of a collaboration between Andreas Beger (Predictive Heuristics), Rick Morgan (V-Dem), and Laura Maxwell (V-Dem).", br(),  br(), "The six conceptual dimensions we focus on come from the International Republican Institute's Closing Space Barometer, which includes an analytical framework for assessing the processes that facilitate a substantial reduction (closing events) within these six spaces. This framework was developed based on a series of workshops conducted with Democracy, Human Rights, and Governance (DRG) donors and implementing partners in 2016 and represent the conceptual features of democratic space which are most amenable to DRG assistance programs.", br(),  br(), "We adapted these conceptual spaces, expanded the scope to include substantial improvements (opening events), and developed an operationalization method to identify opening and closing events within each space. This dashboard, and the forecast that drive it, is the output of these efforts.")))),
 
                  wellPanel(class = "panel panel-default",
                            fluidRow(
@@ -203,33 +203,33 @@ navbarPage("The Democratic Space Barometer",
                                     tags$span(h3("The Democratic Space Barometer estimates the probability that a country will experience at least one ", tags$b("opening event"), " (shift towards more democratic governance) or at least one ", tags$b("closing event"), " (shift towards more autocratic governance) within a", tags$b(" two-year window (2020-2021)."), " We estimate the probability of opening and closing events across", tags$b("six spaces of democratic governance:")),
 
                                               ## Adds hoverover popup text for each space
-                                              h3(tags$em(tags$b(a(id = "AssText", style = "text-decoration: none;", " Associational, "),
-                                                                bsPopover(id = "AssText", title = "<b>Civil Society",
+                                              h3(tags$em(tags$b(a(id = "AssText2", style = "text-decoration: none;", " Associational, "),
+                                                                bsPopover(id = "AssText2", title = "<b>Civil Society",
                                                                           content = "Measured using the <b>V-Dem&apos;s Core Civil Society Index</b>, which ranges from 0 to 1 and captures CSO autonomy from the state and citizens&apos; ability to freely and actively pursue their political and civic goals, however conceived. It takes into account CSO entry and exit, repression, and participation",
                                                                           options = list(container = "body")),
 
-                                                                a(id = "EcoText", style = "text-decoration: none;", " Economic, "),
-                                                                bsPopover(id = "EcoText", title = "<b>Public Corruption",
+                                                                a(id = "EcoText2", style = "text-decoration: none;", " Economic, "),
+                                                                bsPopover(id = "EcoText2", title = "<b>Public Corruption",
                                                                           content = "Measured using the <b>V-Dem&apos;s Public Corruption Index</b>, which ranges from 0 to 1 and captures the extent in which public sector employees grant favors in exchange for bribes (or other material inducements), and how often they steal, embezzle, or misappropriate public funds or other state resources for personal or family use.",
                                                                           options = list(container = "body")),
 
-                                                                a(id = "ElecText", style = "text-decoration: none;", " Electoral, "),
-                                                                bsPopover(id = "ElecText", title = "<b>Citizens&apos; check on government",
+                                                                a(id = "ElecText2", style = "text-decoration: none;", " Electoral, "),
+                                                                bsPopover(id = "ElecText2", title = "<b>Citizens&apos; check on government",
                                                                           content = "Measured using the <b>V-Dem&apos;s Vertical Accountability Index</b>, which ranges from 0 to 1 and captures the ability of the population to hold their government accountable through elections and political parties. It captures election quality, enfranchisement, direct election of chief executive, and opposition party freedoms.",
                                                                           options = list(container = "body")),
 
-                                                                a(id = "GovText", style = "text-decoration: none;", " Governing, "),
-                                                                bsPopover(id = "GovText", title = "<b>Government checks and balance",
+                                                                a(id = "GovText2", style = "text-decoration: none;", " Governing, "),
+                                                                bsPopover(id = "GovText2", title = "<b>Government checks and balance",
                                                                           content = "Measured using the <b>V-Dem&apos;s Horizontal Accountability Index</b>, which ranges from 0 to 1 and captures the degree to which the legislative and judicial branches can hold the executive branch accountable as well as legislative and judical oversight over the bureaucracy and security services.",
                                                                           options = list(container = "body")),
 
-                                                                a(id = "IndText", style = "text-decoration: none;", " Individual, "),
-                                                                bsPopover(id = "IndText", title = "<b>Individual freedoms",
+                                                                a(id = "IndText2", style = "text-decoration: none;", " Individual, "),
+                                                                bsPopover(id = "IndText2", title = "<b>Individual freedoms",
                                                                           content = "Measured using the <b>V-Dem&apos;s Equality Before the Law and Individual Liberty Index</b>, which ranges from 0 to 1 and captures the extent to which the laws are transparent and rigorously enforced and public administration impartial, and the extent to which citizens enjoy access to justice, secure property rights, freedom from forced labor, freedom of movement, physical integrity rights, and freedom of religion.",
                                                                           options = list(container = "body")))), "and ",
 
-                                                 tags$em(tags$b(a(id = "infoText", style = "text-decoration: none;", "Informational"),
-                                                                bsPopover(id = "infoText", title = "<b>Media",
+                                                 tags$em(tags$b(a(id = "infoText2", style = "text-decoration: none;", "Informational"),
+                                                                bsPopover(id = "infoText2", title = "<b>Media",
                                                                           content = "Measured using the <b>V-Dem&apos;s Freedom of Expression and Alternative Sources of Information Index</b>, which ranges from 0 to 1 and captures media censorship, harassment of journalists, media bias, media self-censorship, whether the media is critical and pluralistic, as well as the freedom of discussion and academic and cultural expression.",
                                                                           options = list(container = "body"))))),
 
