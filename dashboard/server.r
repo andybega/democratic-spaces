@@ -57,14 +57,10 @@ function(input, output, session) {
     }
   })
   
-  ## Builds map, links to barchart 
+  ## Builds initial map, links to barchart 
   output$map1 <- renderLeaflet({
-    #if(input$direction == "Opening"){
-     # color_var <- paste0("map_color_up_", input$space)
-      cols <- c("#BFDFED" ,"#8FC7E0", "#5FB0D3" ,"#2F99C6", "#0082BA", "#D0D0D1")#}
-    #else{color_var <- paste0("map_color_down_", input$space)
-    cols2 <- c("#FDEFE6", "#FAD0B4", "#F8B183", "#F59252", "#F37321", "#D0D0D1")#}
-    color_data <- GW_shp_file_new@data$map_color_up_v2xcs_ccsi# [, color_var] 
+    cols <- c("#FDEFE6", "#FAD0B4", "#F8B183", "#F59252", "#F37321", "#D0D0D1")
+    color_data <- GW_shp_file_new@data$map_color_up_v2xcs_ccsi
     color_data <- ifelse(is.na(color_data), "#D0D0D1", color_data)
     leaflet(GW_shp_file_new, options = list(preferCanvas = TRUE, minZoom = 1, maxZoom = 4, zoomControl = FALSE)) %>% 
       htmlwidgets::onRender("function(el, x) {
@@ -81,17 +77,12 @@ function(input, output, session) {
       addLegend(position = "bottomleft", 
                 title = "Estimate 2010-21", 
                 layerId = "legend",
-                #group = "Fill_up",
                 opacity = 1,
                 labels = c("< 5%", "< 15%", "< 25%", "< 35%", ">= 35%", "No Data"), 
-                colors = cols) #%>%
-    #%>%
-     # addLayersControl(overlayGroups = c("Fill_up", "Fill_down"),
-      #                 options = layersControlOptions(collapsed = T)) %>%
-      #removeControl() %>%
-      #hideGroup("Fill_down")
+                colors = cols) 
   })
   
+  #update map based on change in space input
   observeEvent(c(input$space), {
     if(input$direction == "Opening"){
     color_var <- paste0("map_color_up_", input$space)
@@ -116,16 +107,13 @@ function(input, output, session) {
       addLegend(position = "bottomleft", 
                 title = "Estimate 2020-21", 
                 layerId = "legend",
-                #group = "Fill_down",
                 opacity = 1,
                 labels = c("< 5%", "< 15%", "< 25%", "< 35%", ">= 35%", "No Data"), 
                 colors = cols)
-      #showGroup(show) %>%
-      #hideGroup(hide)
   
   })
   
-  
+  #update map based on change in direction input
   observeEvent(c(input$direction), {
     if(input$direction == "Opening"){
       color_var <- paste0("map_color_up_", input$space)
@@ -150,7 +138,6 @@ function(input, output, session) {
       addLegend(position = "bottomleft", 
                 title = "Estimate 2020-21", 
                 layerId = "legend",
-                #group = "Fill_down",
                 opacity = 1,
                 labels = c("< 5%", "< 15%", "< 25%", "< 35%", ">= 35%", "No Data"), 
                 colors = cols)
@@ -208,6 +195,7 @@ function(input, output, session) {
       selected = input$space)
   })
   
+  #center the map based on regional selection
   observeEvent(c(input$region, input$direction, input$space), {
     if(input$region > 0 & input$region != 5){
       region_lat <- switch(input$region, 
@@ -239,6 +227,7 @@ function(input, output, session) {
     }
   })
   
+  #update country-level risk and time series plots based on country selection
     observeEvent(c(input$countrySelect), {
     country_name <- input$countrySelect
     
@@ -281,6 +270,7 @@ function(input, output, session) {
     }
   }) 
   
+  #update all the text based on space input
   observeEvent(c(input$space), {
     space_var_name4 <- input$space
     SpaceDescript_name2 <- switch(space_var_name4,

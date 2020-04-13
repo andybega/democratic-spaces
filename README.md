@@ -1,10 +1,14 @@
 Democratic Spaces Barometer
 ================
 
-This repo contains the code and data needed to reproduce and update the
-Democratic Space Barometer forecasts.
+The Demoractic Spaces Barometer forecasts significant changes, both
+democratizing and autocratizing, for six facets of democratic governance
+for all major countries in the world 2 years ahead. The current
+forecasts cover 2020-2021 and can be explored with the dashboard at
+<https://www.v-dem.net/en/analysis/DemSpace/>.
 
-The repo is organized into three self-contained folders:
+This repo contains the code and data needed to reproduce the forecasts
+and dashboard. It is organized into three self-contained folders:
 
   - `create-data/`: combine V-Dem and other data sources into the
     historical data that is used to code the dependent variables and
@@ -28,7 +32,29 @@ released.
 ## Setup
 
 The R packages needed to run all code in this repo are listed in
-`required-packages.txt`. To check and install them all, try:
+`required-packages.txt`. Two packages need special treatment:
+
+  - **demspaces** is not on CRAN. This package contains some custom
+    model wrappers to make it easier to work with the 12 outcome
+    variables we are modeling. It can be installed with:
+    
+    ``` r
+    remotes::install_github("andybega/demspaces")
+    ```
+
+  - **states** needs to be at least verion 0.2.2.9007, which by the time
+    you are reading this may be met by the version on CRAN. If not, you
+    can also install the development version from GitHub:
+    
+    ``` r
+    # Check the package version
+    packageVersion("states")
+    if (packageVersion("states") < "0.2.2.9007") {
+      remotes::install_github("andybega/states")
+    }
+    ```
+
+To check for and install the remaining packages, try:
 
 ``` r
 packs <- readLines("required-packages.txt")
@@ -64,6 +90,38 @@ To update the forecasts:
 4.  Adjust the end year in `modelrunner/R/rf.R` line 56 and re-run.
 5.  Copy `modelrunner/output/fcasts-rf.csv` to `dashboard/data/`.
 
+## Citation
+
+Andreas Beger, Richard K. Morgan, and Laura Maxwell, 2020, “The
+Democratic Spaces Barometer: global forecasts of autocratization and
+democratization”, <doi>
+
+``` bibtex
+@misc{beger2020democratic,
+  auhor = {Beger, Andreas and Morgan, Richard K. and Maxwell, Laura},
+  title = {The Democratic Spaces Barometer: global forecasts of autocratization and democratization},
+  year  = {2020},
+  url   = {},
+}
+```
+
+## Contributing
+
+We welcome any error and bug reports dealing with mistakes in the
+existing code and data. Please open an issue or email Andreas Beger at
+[adbeger@gmail.com](mailto:adbeger+demspaces@gmail.com).
+
+This repo is not under active development and mainly serves for the sake
+of transparency and to allow reproduction of the forecasts and
+dashboard. There is no plan for continuing development aside from,
+potentially, annual forecast updates in the future. It is thus unlikely
+that more substantive feedback, like suggestions about additional
+features/predictors or alternative models, would be incorporated unless
+you do most of the legwork and can clearly demonstrate improved
+performance. This is not meant as discouragement, we simply don’t have
+the resources to put more time in this and want to prevent
+disappointment.
+
 ## System info
 
 ``` r
@@ -86,8 +144,8 @@ sessionInfo()
     ## 
     ## loaded via a namespace (and not attached):
     ##  [1] compiler_3.6.1  magrittr_1.5    tools_3.6.1     htmltools_0.3.6
-    ##  [5] yaml_2.2.0      Rcpp_1.0.4      stringi_1.4.3   rmarkdown_1.18 
-    ##  [9] knitr_1.25      stringr_1.4.0   xfun_0.11       digest_0.6.25  
+    ##  [5] yaml_2.2.1      Rcpp_1.0.4      stringi_1.4.6   rmarkdown_1.18 
+    ##  [9] knitr_1.28      stringr_1.4.0   xfun_0.12       digest_0.6.25  
     ## [13] evaluate_0.14
 
 ``` r
@@ -106,7 +164,7 @@ packs
     ## 5        glmnet     2.0-18
     ## 6          here        0.1
     ## 7   highcharter      0.7.0
-    ## 8      jsonlite        1.6
+    ## 8      jsonlite      1.6.1
     ## 9       leaflet      2.0.3
     ## 10          lgr      0.3.3
     ## 11     magrittr        1.5
@@ -120,9 +178,9 @@ packs
     ## 19      shinyBS       0.61
     ## 20 shinyWidgets      0.5.0
     ## 21        skimr      1.0.7
-    ## 22       states 0.2.2.9007
+    ## 22       states 0.2.2.9008
     ## 23      stringr      1.4.0
-    ## 24       tibble      2.1.3
-    ## 25        tidyr      1.0.0
+    ## 24       tibble      3.0.0
+    ## 25        tidyr      1.0.2
     ## 26    tidyverse      1.2.1
     ## 27          zoo      1.8-6

@@ -1,0 +1,179 @@
+#
+#   This is the data cleaning script for the initial version of the dashboard
+#   Superceded by the 2020 version.
+#
+#   Laura Maxwell & Rick Morgan
+#
+
+library(tidyverse)
+library(magrittr)
+library(sf)
+library(rmapshaper)
+library(rgeos)
+library(rgdal)
+ setwd("~/Documents/closing-spaces/4-dashboard/Data/")
+
+setwd("data")
+
+iri_dat <- read.csv("fcasts-rf-run7.csv", stringsAsFactors = F)
+current_forecast <- iri_dat %>%
+  filter(from_year == 2018) #%>%
+  #mutate(p_same = 1 - (p_up + p_down))
+outcomes <- unique(iri_dat$outcome)
+
+vdem <- read.csv("vdem_data_1968-2019.csv", stringsAsFactors = F)
+regions <- read.csv("vdem_regions.csv")
+vdem %<>% left_join(regions)
+
+dvs <- read.csv("dv_data_1968-2019.csv", stringsAsFactors = F)
+dvs %<>% left_join(regions)
+current_dvs <- dvs %>%
+  gather(outcome, level_2018, -gwcode, -year, -country_name, -country_id, -country_text_id, -e_regionpol_6C) %>%
+  group_by(outcome, country_name) %>%
+  arrange(year) %>%
+  mutate(change_2018 = c(NA,diff(level_2018, diff = 1))) %>%
+  filter(year == 2018) %>%
+  arrange(country_name)
+
+region_labels <- data.frame(names = c("E. Europe and Central Asia", "Latin America and the Caribbean", "Middle East and N. Africa", "Sub-Saharan Africa", "W. Europe and N. America*", "Asia and Pacific"),
+                            level = 1:6)
+space_labels <-  data.frame(names = c("Electoral", "Governing", "Individual", "Associational", "Informational", "Economic"),
+                            outcome = c("v2x_veracc_osp", "v2x_horacc_osp", "v2xcl_rol", "v2xcs_ccsi", "v2x_freexp_altinf", "v2x_pubcorr"), stringsAsFactors = F)
+
+thres_labels <-  data.frame(thres = c("+/-0.08", "+/-0.06", "+/-0.04", "+/-0.05", "+/-0.05", "+/-0.03"),
+                            outcome = c("v2x_veracc_osp", "v2x_horacc_osp", "v2xcl_rol", "v2xcs_ccsi", "v2x_freexp_altinf", "v2x_pubcorr"), stringsAsFactors = F)
+vdem_labels <- data.frame(index_name = c("V-Dem&apos;s Vertical Accountability Index", "V-Dem&apos;s Horizontal Accountability Index", "V-Dem&apos;s Equality Before the Law and Individual Liberty Index", "V-Dem&apos;s Core Civil Society Index", "V-Dem&apos;s Freedom of Expression and Alternative Sources of Information Index", "V-Dem&apos;s Public Corruption Index"),
+                          outcome = c("v2x_veracc_osp", "v2x_horacc_osp", "v2xcl_rol", "v2xcs_ccsi", "v2x_freexp_altinf", "v2x_pubcorr"), stringsAsFactors = F)
+
+all_forecast_data <- current_forecast %>%
+  left_join(current_dvs, by = c("outcome", "from_year" = "year", "gwcode")) %>%
+  dplyr::select(gwcode, country_name, outcome, year = from_year, for_years, region = e_regionpol_6C, level_2018, change_2018, p_up, p_down, p_same) %>%
+  group_by(outcome) %>%
+  arrange(desc(p_down)) %>%
+  dplyr::mutate(down_rank = row_number()) %>%
+  arrange(desc(p_up)) %>%
+  dplyr::mutate(up_rank = row_number()) %>%
+  left_join(space_labels) %>%
+  left_join(thres_labels) %>%
+  left_join(vdem_labels)
+
+all_forecast_data$change_2018 <- ifelse(all_forecast_data$change_2018 > 0, paste0("+", round(all_forecast_data$change_2018,3)), round(all_forecast_data$change_2018,3))
+
+#add colors
+
+colfunc1 <- colorRampPalette(c("#E2F1F7", "#0082BA"))
+colfunc2 <- colorRampPalette(c("#FDEFE6", "#F37321"))
+colors_down  = c(colfunc2(5), "#D0D0D1")
+colors_up  = c(colfunc1(5), "#D0D0D1")
+
+all_forecast_data$map_color_up <- ifelse(all_forecast_data$p_up < 0.05, colors_up[1],
+                                        ifelse(all_forecast_data$p_up < 0.15, colors_up[2],
+                                               ifelse(all_forecast_data$p_up < 0.25, colors_up[3],
+                                                      ifelse(all_forecast_data$p_up < 0.35, colors_up[4],
+                                                             ifelse(!is.na(all_forecast_data$p_up), colors_up[5], colors_up[6])))))
+
+
+all_forecast_data$map_color_down <- ifelse(all_forecast_data$p_down < 0.05, colors_down[1],
+                                        ifelse(all_forecast_data$p_down < 0.15, colors_down[2],
+                                               ifelse(all_forecast_data$p_down < 0.25, colors_down[3],
+                                                      ifelse(all_forecast_data$p_down < 0.35, colors_down[4],
+                                                             ifelse(!is.na(all_forecast_data$p_down), colors_down[5], colors_down[6])))))
+
+all_forecast_data$popUp_text_up <- paste('<h3><b>', all_forecast_data$country_name,'</b></h3>',
+                                         '<h5><span style="color:#002649">Event probabilities for the <b>', all_forecast_data$names, ' Space</b> <span style="font-size: 80%">(', all_forecast_data$thres, ' change in <b>', all_forecast_data$index_name, '</b>)</span></span></h5>',
+                                         paste('<b><span style="color:#0082BA">Opening Event: ',floor(all_forecast_data$p_up * 100), '%</b></span><br>', sep = ''),
+                                         paste('<b><span style="color:#777778">Stable: ',floor(all_forecast_data$p_same * 100), '%</b></span><br>', sep = ''),
+                                         paste('<b><span style="color:#F37321">Closing Event: ',floor(all_forecast_data$p_down * 100), '%</b></span><br><br>', sep = ''),
+                                         paste('<b><span style="color:#0082BA"> Opening </span><span style="color:#002649">Risk Ranking: ', all_forecast_data$up_rank, '</b></span><br>', sep = ''),
+                                         paste('<b><span style="color:#F37321"> Closing </span><span style="color:#002649">Risk Ranking: ', all_forecast_data$down_rank, '</b></span><br>', sep = ''),
+                                         paste('<b><span style="color:#002649"> ',all_forecast_data$names,' Level in 2018: ', all_forecast_data$level_2018, '</b></span><br>', sep = ''),
+                                         paste('<b><span style="color:#002649"> ',all_forecast_data$names,' Change 2017-2018: ', all_forecast_data$change_2018, '</b></span>', sep = ''),sep = '')
+
+
+ all_forecast_data$popUp_text_down <- paste('<h3><b>', all_forecast_data$country_name,'</b></h3>',
+                                            '<h5><span style="color:#002649">Event probabilities for the <b>', all_forecast_data$names, ' Space</b> <span style="font-size: 80%">(', all_forecast_data$thres, ' change in the <b>', all_forecast_data$index_name, '</b>)</span></h5>',
+                                            paste('<b><span style="color:#F37321">Closing Event: ',floor(all_forecast_data$p_down * 100), '%</b></span><br>', sep = ''),
+                                            paste('<b><span style="color:#777778">Stable: ',floor(all_forecast_data$p_same * 100), '%</b></span><br>', sep = ''),
+                                            paste('<b><span style="color:#0082BA">Opening Event: ',floor(all_forecast_data$p_up * 100), '%</b></span><br><br>', sep = ''),
+                                            paste('<b><span style="color:#F37321"> Closing </span><span style="color:#002649">Risk Ranking: ', all_forecast_data$down_rank, '</b></span><br>', sep = ''),
+                                            paste('<b><span style="color:#0082BA"> Opening </span><span style="color:#002649">Risk Ranking: ', all_forecast_data$up_rank, '</b></span><br>', sep = ''),
+                                            paste('<b><span style="color:#002649"> ',all_forecast_data$names,' Level in 2018: ', all_forecast_data$level_2018, '</b></span><br>', sep = ''),
+                                            paste('<b><span style="color:#002649"> ',all_forecast_data$names,' Change 2017-2018: ', all_forecast_data$change_2018, '</b></span>', sep = ''),sep = '')
+##join this to the map shp file
+GW_shp_file_new <- readRDS("new_map_data.rds")
+#GW_shp_file_new <- st_as_sf(GW_shp_file_new)
+forecast_colors <- all_forecast_data %>%
+  dplyr::select(gwcode, country_name, year, outcome, map_color_up, map_color_down, p_up, p_down, p_same, popUp_text_up, popUp_text_down, level_2018, change_2018) %>%
+  pivot_wider(names_from = outcome, values_from = c(map_color_down, map_color_up, level_2018, change_2018, p_up, p_down, p_same, popUp_text_up, popUp_text_down))
+
+GW_shp_file_new@data <- GW_shp_file_new@data[,-c(25:33,36)] %>%
+  left_join(forecast_colors)
+
+#simplified_shp <- gSimplify(GW_shp_file_new, tol = 0.018, topologyPreserve = FALSE)
+ids<-NULL
+for(i in 1:195){
+  id <- GW_shp_file_new@polygons[[i]]@ID
+  ids <- c(ids, id)}
+row.names(GW_shp_file_new@data) <- ids
+#simplified <- SpatialPolygonsDataFrame(simplified_shp, data = GW_shp_file_new@data)
+#GW_shp_file_new <- simplified
+GW_shp_file_new2 <- rmapshaper::ms_simplify(GW_shp_file_new, keep = 0.2)
+# object.size(GW_shp_file_new)
+# object.size(GW_shp_file_new2)
+# %>%
+#   mutate_at(contains("map_color"), replace_na("#D0D0D1"))
+#
+# str(GW_shp_file_new@data$map_color_up_v2x_horacc_osp)
+# GW_shp_file_new@data[is.na(GW_shp_file_new@data$year), c("CNTRY_NAME", "map_color_up_v2x_horacc_osp")]
+
+
+
+#figure out a way to have a popup for no data countries
+
+#GW_shp_file@data$popUp_text <- str_replace_all(popUp_text0, "NA%", "No Data")
+write_rds(GW_shp_file_new2, "~/Documents/closing-spaces/4-dashboard/Data/new_map_dat2.rds")
+write_rds(GW_shp_file_new2, "new_map_dat2.rds")
+
+country_characteristic_dat <- readRDS("country_characteristic_dat.rds")
+
+barplot_data <- all_forecast_data
+
+prob1_dat <- all_forecast_data %>%
+  dplyr::select(-for_years, -year, -gwcode, -level_2018) %>%
+  pivot_longer(cols = c(p_up, p_down, p_same), names_to = "direction") %>%
+  mutate(colors = case_when(direction == "p_up" ~ map_color_up,
+                            direction == "p_same" ~ "#D0D0D1",
+                            direction == "p_down" ~ map_color_down)) %>%
+
+  mutate(direction = case_when(direction == "p_up" ~ "Opening",
+                               direction == "p_same" ~ "Neither",
+                               direction == "p_down" ~ "Closing")) %>%
+  dplyr::select(-map_color_up, -map_color_down)
+
+prob1_dat %<>%
+  left_join(space_labels) %>%
+  na.omit()
+
+prob1_dat$names <- factor(prob1_dat$names, levels = c("Associational", "Economic", "Electoral", "Governing", "Individual", "Informational"), ordered = T)
+prob1_dat$outcome <- factor(prob1_dat$outcome, levels = c( "v2xcs_ccsi", "v2x_pubcorr", "v2x_veracc_osp", "v2x_horacc_osp", "v2xcl_rol", "v2x_freexp_altinf"), ordered = T)
+
+write_rds(prob1_dat, "~/Documents/closing-spaces/4-dashboard/Data/prob1_dat.rds")
+write_rds(prob1_dat, "prob1_dat.rds")
+
+rank_data_up <- all_forecast_data %>%
+  dplyr::group_by(outcome) %>%
+  arrange(desc(p_up)) %>%
+  dplyr::mutate(rank = row_number(), color_prob = map_color_up, risk_2018 = p_up) %>%
+  filter(rank <= 20)
+
+write_rds(rank_data_up, "~/Documents/closing-spaces/4-dashboard/Data/rank_data_up.rds")
+write_rds(rank_data_up, "rank_data_up.rds")
+
+rank_data_down <- all_forecast_data %>%
+  dplyr::group_by(outcome) %>%
+  arrange(desc(p_down)) %>%
+  dplyr::mutate(rank = row_number(), color_prob = map_color_down, risk_2018 = p_down) %>%
+  filter(rank <= 20)
+write_rds(rank_data_down, "~/Documents/closing-spaces/4-dashboard/Data/rank_data_down.rds")
+write_rds(rank_data_down, "rank_data_down.rds")
+
