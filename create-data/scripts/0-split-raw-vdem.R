@@ -11,6 +11,7 @@
 #     - trafo-data/dv_data_1968_on.csv
 #     - trafo-data/vdem_data_1968_on.csv
 #     - trafo-data/country_year_set_1968_on.csv
+#     - dashboard/Data/dv_data_1968-2019.csv
 #
 #   NOTE FOR UPDATES:
 #     For every vdem version update, we need to comment out any
@@ -100,11 +101,16 @@ write_csv(country_year_set, "trafo-data/country_year_set_1968_on.csv")
 
 vdem_dvs <- vdem_complete %>%
   select(c(country_name, country_text_id, country_id, gwcode, year,
-           v2x_veracc_osp, v2xcs_ccsi, v2xcl_rol, v2x_freexp_altinf, v2x_horacc_osp, v2x_pubcorr)) %>%
+           v2x_veracc_osp, v2xcs_ccsi, v2xcl_rol, v2x_freexp_altinf, v2x_horacc_osp, v2x_pubcorr, e_regionpol_6C)) %>%
   mutate(v2x_pubcorr = 1 - v2x_pubcorr)
 
 dvs <- left_join(country_year_set, vdem_dvs)
 naCountFun(dvs, END_YEAR)  # no NAs
+
+write_csv(dvs, "../dashboard/Data/dv_data_1968_on.csv")
+
+dvs <- dvs %>% 
+  select(-e_regionpol_6C)
 
 write_csv(dvs, "trafo-data/dv_data_1968_on.csv")
 

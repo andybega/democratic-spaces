@@ -1,18 +1,29 @@
 
-packs <- c("tidyverse", "rio", "leaflet", "shiny", "highcharter", "shinyWidgets", "shinyBS")
-# install.packages(packs, dependencies = TRUE)
-lapply(packs, library, character.only = TRUE)
+
+library(tidyverse)
+library(leaflet)
+library(shiny)
+library(highcharter)
+library(shinyWidgets)
+library(shinyBS)
+library(here)
+
+setwd(here::here("dashboard/"))
+
+# packs <- c("tidyverse", "rio", "leaflet", "shiny", "highcharter", "shinyWidgets", "shinyBS")
+# # install.packages(packs, dependencies = TRUE)
+# lapply(packs, library, character.only = TRUE)
 
 ## Load and transform some data
-#dvs <- read.csv("Data/dv_data_1968-2019.csv", stringsAsFactors = F)
 GW_shp_file_new <- readRDS("Data/new_map_dat2.rds") 
 GW_shp_file_data <- data.frame(GW_shp_file_new@data, stringsAsFactors = FALSE) %>%
   na.omit(.)
 #GW_shp_file_data <- GW_shp_file_new@data
+
+
 country_characteristic_dat <- readRDS("Data/country_characteristic_dat.rds")
 countryNamesText <- c("", sort(unique(as.character(country_characteristic_dat$country_name))))
 
-bar_plot_dat <- readRDS("Data/bar_plot_dat.rds")
 rank_data_down <- readRDS("Data/rank_data_down.rds")
 rank_data_up <- readRDS("Data/rank_data_up.rds")
 prob1_dat <- readRDS("Data/prob1_dat.rds") 
