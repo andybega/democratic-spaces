@@ -10,7 +10,7 @@
 #     - dv_data_1968_on.csv: from create-data/scripts/0-split-raw-vdem.R
 #
 #   Output:
-#     - new_map_dat2.rds
+#     - map_dat.rds
 #     - country_characteristic_dat.RDS
 #     - prob1_dat.rds
 #     - rank_data_up.rds
@@ -152,7 +152,7 @@ GW_shp_file_new2 <- rmapshaper::ms_simplify(GW_shp_file, keep = 0.2)
 # object.size(GW_shp_file)
 # object.size(GW_shp_file_new2)
 
-write_rds(GW_shp_file_new2, "new_map_dat2.rds")
+write_rds(GW_shp_file_new2, "map_dat.rds")
 
 country_characteristic_dat <- dvs %>%
   dplyr::select(gwcode, year, country_name,

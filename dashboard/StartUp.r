@@ -9,8 +9,7 @@ library(shinyBS)
 
 setwd(here::here("dashboard"))
 
-
-
+# getwd()
 # ## CHECK WOKING DIRECTORY!
 ## It should point to "../GitHub/democratic-spaces/dashboard"
 

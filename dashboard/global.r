@@ -15,7 +15,7 @@ setwd(here::here("dashboard/"))
 # lapply(packs, library, character.only = TRUE)
 
 ## Load and transform some data
-GW_shp_file_new <- readRDS("Data/new_map_dat2.rds") 
+GW_shp_file_new <- readRDS("Data/map_dat.rds") 
 GW_shp_file_data <- data.frame(GW_shp_file_new@data, stringsAsFactors = FALSE) %>%
   na.omit(.)
 #GW_shp_file_data <- GW_shp_file_new@data
