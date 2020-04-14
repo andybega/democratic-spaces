@@ -122,6 +122,29 @@ performance. This is not meant as discouragement, we simply don’t have
 the resources to put more time in this and want to prevent
 disappointment.
 
+## Acknowledgement
+
+The Democratic Space Barometer is the product of a collaboration between
+Andreas Beger ([Predictive
+Heuristics](https://www.predictiveheuristics.com)), Richard K. Morgan
+([V-Dem](https://www.v-dem.net/en/)), and Laura Maxwell
+([V-Dem](https://www.v-dem.net/en/)).
+
+The six conceptual dimensions we focus on come from the International
+Republican Institute’s Closing Space Barometer, which includes an
+analytical framework for assessing the processes that facilitate a
+substantial reduction (closing events) within these six spaces. This
+framework was developed based on a series of workshops conducted with
+Democracy, Human Rights, and Governance (DRG) donors and implementing
+partners in 2016 and represent the conceptual features of democratic
+space which are most amenable to DRG assistance programs.
+
+We adapted these conceptual spaces, expanded the scope to include
+substantial improvements (opening events), and developed an
+operationalization method to identify opening and closing events within
+each space. This dashboard, and the forecast that drive it, is the
+output of these efforts.
+
 ## System info
 
 ``` r
