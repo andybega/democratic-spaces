@@ -1,106 +1,283 @@
-bootstrapPage(div(class = "outer",
-      tags$head(includeCSS("styles.css")),
-    fluidPage(id = "ARTPage", 
-      titlePanel("V-Forecast: Predicting Adverse Regime Transitions (PART)"), 
-        fluidRow(
-          column(12, 
-            wellPanel(id = "intro", class = "panel panel-default", #fixed = FALSE,
-              h3(tags$span(style = "font-size: 80%; color: black;", "The PART project uses data from the", a(href= "https://www.v-dem.net", "Varieties of Democracy (V-Dem)", target="_blank"), "Institute and other sources to estimate the risk of adverse regime transitions during the next", tags$b("two years (2019-2020)."), 
-                br(),
-                br(), 
-                "We define an adverse regime transition as a year-to-year decrease in the", 
-                a(href = "https://www.v-dem.net/files/5/Regimes%20of%20the%20World%20-%20Final.pdf", "Regimes of the World (RoW) index,", target="_blank"), 
-                "which classifies political regimes as either a ", tags$b("closed autocracy, electoral autocracy, electoral democracy, or liberal democracy. "), "The PART project estimates the risk of moving down this scale within a two-year window.", 
-                br(),
-                br(), 
-                "For more details, please see our", a(href= "https://www.v-dem.net/media/filer_public/b9/b2/b9b2c233-ec45-425d-a397-1cd80dadb63a/v-dem_working_paper_2019_89.pdf", " working paper.", target="_blank"), "We welcome feedback."
-                )
-              )
-            )
-          )
-        ),
+navbarPage("The Democratic Space Barometer",
+
+      tabPanel("Dashboard",
+               wellPanel(class = "panel panel-default",
+                         fluidRow(
+                           column(12,
+                                  tags$span(h3("The Democratic Space Barometer estimates the probability that a country will experience at least one ", tags$b("opening event"), " (shift towards more democratic governance) or at least one ", tags$b("closing event"), " (shift towards more autocratic governance) within a", tags$b(" two-year window (2020-2021)."), " We estimate the probability of opening and closing events across", tags$b("six spaces of democratic governance:")),
+
+                                            ## Adds hoverover popup text for each space
+                                            h3(tags$em(tags$b(a(id = "AssText", style = "text-decoration: none;", " Associational, "),
+                                                              bsPopover(id = "AssText", title = "<b>Civil Society",
+                                                                        content = "Measured using the <b>V-Dem&apos;s Core Civil Society Index</b>, which ranges from 0 to 1 and captures CSO autonomy from the state and citizens&apos; ability to freely and actively pursue their political and civic goals, however conceived. It takes into account CSO entry and exit, repression, and participation",
+                                                                        options = list(container = "body")),
+
+                                                              a(id = "EcoText", style = "text-decoration: none;", " Economic, "),
+                                                              bsPopover(id = "EcoText", title = "<b>Public Corruption",
+                                                                        content = "Measured using the <b>V-Dem&apos;s Public Corruption Index</b>, which ranges from 0 to 1 and captures the extent in which public sector employees grant favors in exchange for bribes (or other material inducements), and how often they steal, embezzle, or misappropriate public funds or other state resources for personal or family use.",
+                                                                        options = list(container = "body")),
+
+                                                              a(id = "ElecText", style = "text-decoration: none;", " Electoral, "),
+                                                              bsPopover(id = "ElecText", title = "<b>Citizens&apos; check on government",
+                                                                        content = "Measured using the <b>V-Dem&apos;s Vertical Accountability Index</b>, which ranges from 0 to 1 and captures the ability of the population to hold their government accountable through elections and political parties. It captures election quality, enfranchisement, direct election of chief executive, and opposition party freedoms.",
+                                                                        options = list(container = "body")),
+
+                                                              a(id = "GovText", style = "text-decoration: none;", " Governing, "),
+                                                              bsPopover(id = "GovText", title = "<b>Government checks and balance",
+                                                                        content = "Measured using the <b>V-Dem&apos;s Horizontal Accountability Index</b>, which ranges from 0 to 1 and captures the degree to which the legislative and judicial branches can hold the executive branch accountable as well as legislative and judical oversight over the bureaucracy and security services.",
+                                                                        options = list(container = "body")),
+
+                                                              a(id = "IndText", style = "text-decoration: none;", " Individual, "),
+                                                              bsPopover(id = "IndText", title = "<b>Individual freedoms",
+                                                                        content = "Measured using the <b>V-Dem&apos;s Equality Before the Law and Individual Liberty Index</b>, which ranges from 0 to 1 and captures the extent to which the laws are transparent and rigorously enforced and public administration impartial, and the extent to which citizens enjoy access to justice, secure property rights, freedom from forced labor, freedom of movement, physical integrity rights, and freedom of religion.",
+                                                                        options = list(container = "body")))), "and ",
+
+                                               tags$em(tags$b(a(id = "infoText", style = "text-decoration: none;", "Informational"),
+                                                              bsPopover(id = "infoText", title = "<b>Media",
+                                                                        content = "Measured using the <b>V-Dem&apos;s Freedom of Expression and Alternative Sources of Information Index</b>, which ranges from 0 to 1 and captures media censorship, harassment of journalists, media bias, media self-censorship, whether the media is critical and pluralistic, as well as the freedom of discussion and academic and cultural expression.",
+                                                                        options = list(container = "body")))))))),
+      fluidRow(
+        column(12, h2(tags$span(style = "font-size: 75%; font-weight:bold;", "2020-2021 Forecasts"))
+        )),
+
+      fluidRow(column(12,
+               tags$span(#style = "font-size: 80%;",
+                 h3("Use the options below to compare the 2020-2021 estimates for opening and closing events for specific spaces in different regions and countries.")))
+        )),
 
       fluidRow(
-        column(7, id = "mapPanel",   
-          leafletOutput("map1", width = "100%", height = "550px")), 
-        column(5, id = "hcbarplotID",
-          highchartOutput("hcbarplot", height = "575px"))
-        ),
-
-      fluidRow(
-        column(12,  
-                h3(tags$span(style = "font-size: 80%; color: black;",
-                "Click on a country in the map, the plot, or select a country from the list below to view its estimated risk and select regime characteristics.")), 
-        h3(tags$b("Country Characteristics:"))
+        column(3,
+               radioButtons("direction", h4("Type"),
+                            choiceNames = list(tags$span(style = "font-size: 100%; font-weight:bold; color: #F37321; ", "Closing Event"),
+                                               tags$span(style = "font-size: 100%; font-weight:bold; color: #0082BA; ", "Opening Event")),
+                            choiceValues = c("Closing", "Opening"),
+                            selected = "Closing",
+                            inline = F)),
+        column(3,
+               # div(class = "option-group",
+               selectInput("space", h4("Space"),
+                           choices = c("Associational" = "v2xcs_ccsi",
+                                       "Economic" = "v2x_pubcorr",
+                                       "Electoral" = "v2x_veracc_osp",
+                                       "Governing" = "v2x_horacc_osp",
+                                       "Individual" = "v2xcl_rol",
+                                       "Informational" = "v2x_freexp_altinf"),
+                           selected = "v2xcs_ccsi")),
+        column(5,
+               selectInput("region", h4("Region"),
+                           choices = c("Global" = 0,
+                                       "E. Europe and Central Asia" = 1,
+                                       "Latin America and the Caribbean" = 2,
+                                       "Middle East and N. Africa" = 3,
+                                       "Sub-Saharan Africa" = 4,
+                                       "W. Europe and N. America*" = 5,
+                                       "Asia and Pacific" = 6),
+                           selected = 0)
         )
       ),
 
+      hr(),
       fluidRow(
-        column(4, 
-        selectInput("countrySelect", choices = countryNamesText, 
-          label = h4(tags$b("1) Select a country")), selectize = TRUE)), 
-        column(8, 
-          h3(textOutput("ROWclass")))
-        ),
+        column(
+          12,
+          h4(tags$span(style = "font-size: 80%; font-weight:bold;", textOutput("SpaceDescript_name")), tags$span(style = "font-size: 80%;", textOutput("SpaceDescript_text")))
+        )
+      ),
       fluidRow(
-        column(2,
-          checkboxGroupInput("checkGroup", label = h4(tags$b("2) Select V-Dem indices to compare")), inline = FALSE, 
-            choiceNames = list(
-            tags$span("Liberal Component", style = paste("color:", v2x_liberal_color, "; font-weight: bold; font-size: 90%;", sep = "")), 
-            tags$span("Equality Before the Law & Ind. Liberty", style = paste("color:", v2xcl_rol_color, "; font-weight: bold; font-size: 90%;", sep = "")), 
-            tags$span("Judicial Constraints on the Executive", style = paste("color:", v2x_jucon_color, "; font-weight: bold; font-size: 90%;", sep = "")), 
-            tags$span("Legislative Constraints on the Executive", style = paste("color:", v2xlg_legcon_color, "; font-weight: bold; font-size: 90%;", sep = "")),
-            tags$span("Civil Liberties", style = paste("color:", v2x_civlib_color, "; font-weight: bold; font-size: 90%;", sep = "")),
-            tags$span("Electoral Democracy", style = paste("color:", v2x_polyarchy_color, "; font-weight: bold; font-size: 90%;", sep = "")), 
-            tags$span("Clean Elections", style = paste("color:", v2xel_frefair_color, "; font-weight: bold; font-size: 90%;", sep = "")), 
-            tags$span("Freedom of Expression & Alt. Sources of Info", style = paste("color:", v2x_freexp_altinf_color, "; font-weight: bold; font-size: 90%;", sep = "")),
-            tags$span("Freedom of Association (thick)", style = paste("color:", v2x_frassoc_thick_color, "; font-weight: bold; font-size: 90%;", sep = ""))),
-        choiceValues = c(
-              "v2x_liberal",
-              "v2xcl_rol",
-              "v2x_jucon",
-              "v2xlg_legcon",
-              "v2x_civlib",
-              "v2x_polyarchy",
-              "v2xel_frefair",
-              "v2x_freexp_altinf",
-              "v2x_frassoc_thick")),
-          checkboxInput("plotCIs", label = "Confidence Intervals", value = FALSE)),
-        column(6, id = "hcbarplotID2",
-          highchartOutput("TimeSeriesPlot", height = "475px")),
-        column(4, id = "hcbarplotID1",
-          highchartOutput("riskPlot", height = "475px"))#, 
+        column(
+          6,
+          h4(tags$span(style = "font-size: 80%; font-weight:bold;", textOutput("SpaceDescript_vedm")), tags$span(style = "font-size: 80%;", textOutput("SpaceDescript_index")))
         ),
-     fluidRow(
-      column(2, ""),
-      column(6, 
-        wellPanel(id = "note1", class = "panel panel-default",
-          h5(tags$span(style = "font-size: 100%;", 
-            tags$b("Interpretation:"),"The complexity of the machine learning models we use makes it difficult to identify which specific variables are driving predictions. Therefore, ",tags$b("the time-series plot is for descriptive purposes only."), "It is meant to help identify trends, not causal relationships, across key V-Dem indices. For access to country-level time series across all V-Dem variables, please use V-Dem's Country Graph tool ",tags$b(a(href= "https://www.v-dem.net/en/analysis/CountryGraph/", "here", target="_blank"))))
-          )
-        ),
-      column(4, 
-        wellPanel(id = "note2", class = "panel panel-default",
-          h5(tags$span(style = "font-size: 100%; font-weight: bold; color: #0498F0;", "Blue bars"), " indicate that an ART occurred within 2-year forecast window", br(), tags$span(style = "font-size: 100%; font-weight: bold; color: #C48BC8;", "Purple bars"), " indicate that no ART occurred within 2-year forecast window", br(), tags$span(style = "font-size: 100%; font-weight: bold; color: #A29C97;", "Gray bars"), " indicate the estimated risk for current 2-year forecast window"))
+        column(
+          5,
+          h4(tags$span(style = "font-size: 80%; font-weight:bold;", textOutput("SpaceDescript_thres2")), tags$span(style = "font-size: 80%;", textOutput("SpaceDescript_thres")))
         )
       ),
 
-     fluidRow( 
-      column(12, 
-        wellPanel(id = "methods", class =  "panel panel-default",
-          # h3(tags$b("Note")), 
-          h3(tags$b("Methodology"),  tags$span(style = "font-size: 70%; color: black;", "(See", a(href= "https://www.v-dem.net/media/filer_public/b9/b2/b9b2c233-ec45-425d-a397-1cd80dadb63a/v-dem_working_paper_2019_89.pdf", " working paper", target="_blank"), " for more details)")), 
-          h4(tags$span(style = "font-size: 90%; color: black;", "It is important to note that these forecasts are probabilistic: a high estimated risk does not mean that an ART will occur with certainty; similarly, a low estimated risk does not mean that there is zero change an ART will not occur.", 
-            br(),
-            br(),
-            "Further, given that this is the first year of this project, we do not yet know how accurately this project can forecast future transitions in the real world as opposed to statistical simulations and out-of-sample tests. However, we are posting these forecasts in the interest of transparency.")), 
-          h4(tags$span(style = "font-size: 90%; color: black;", tags$b("Yearly Risk Estimates"), " - We derive risk estimates for 2011-2017 using a simulation framework that mimics the process we use to produce our 2019-2020 forecasts. In short, we first train our models using all data from 1970 to 2009. We then use data from 2010 to produce estimated risk forecasts for 2011-12. We then retrain our models using all data from 1970 to 2010, use data from 2011 to produce estimates for 2012-12. We conduct this iterative model check procedure for all years, 2011 to 2017.")),
-          h4(tags$span(style = "font-size: 90%; color: black;", tags$b("Data"), "- To produce our estimated risk forecasts, we use", a(href= "https://www.v-dem.net/en/data/data-version-9/", "V-Dem data version 9", target="_blank"), "along with" , a(href= "https://unstats.un.org/unsd/snaama/Index", "UN GDP and population data,", target="_blank"), a(href= "https://icr.ethz.ch/publications/integrating-data-on-ethnicity-geography-and-conflict/", "ethnic power relations data (Vogt et al. 2015),", target="_blank"), a(href= "https://www.jonathanmpowell.com/coup-detat-dataset.html", "coup event data (Powell and Thyne 2011),", target="_blank"), "and", a(href= "https://ucdp.uu.se/downloads/", "UCDP armed conflict data (Pettersson and Eck 2018),", target="_blank"), "over 400 variables altogether. We lag all variables one year and derive the first differences for a number of variables. All of variables we use in our models are lagged one year. Thus, data for 2016 is used to estimate the risk of ARTs for 2017/18.")), 
-          h4(tags$span(style = "font-size: 90%; color: black;", tags$b("Unit of analysis "), "- We use country-years as our unit of analysis and limit our temporal frame to 1970-2018. We reconcile the differences between the V-Dem country-year set and the", a(href= "https://www.andybeger.com/states/reference/gwstates.html", "Gleditsch and Ward", target="_blank"), "country-year set. This leaves 169 countries for our 2019-2020 forecasts. The number of countries in our data per year ranges from 135 to 169. Our training and validation country-year set covers 7,754 country-year observations.")), 
-          h4(tags$span(style = "font-size: 90%; color: black;", tags$b("Effective positive rate"), "- The yearly rate of adverse regime transitions of our dependent variable in any given year ranges from around 1.4 percent to 10 percent; 75 percent of our yearly positive rates are between 3.8 percent and 5.6 percent.")), 
-          h4(tags$span(style = "font-size: 90%; color: black;", tags$b("Models"),"- We use three machine learning models: logit with elastic-net regularization, random forest, and gradient boosted forest. To help account for differences across these models, we use an unweighted model average ensemble. This is our preferred approach, as it helps smooth out our predicted risk estimates while improving accuracy. The estimates shown above are from this ensemble model.")),
-          h4(tags$span(style = "font-size: 90%; color: black;", tags$b("Model Assessment"),"- Our unweighted model average ensemble model reports an AUC-PR score of 0.46 in a 2x7 repeated cross-validation procedure (1970-2017) and an AUC-PR score of 0.39 in our set of yearly test forecasts (2011-2017). As a general benchmark of performance, an AUC-PR score that is higher than the observed frequency of events in the data is a signal that the model is an improvement over chance. With an observed frequency of ARTs at roughly 4 percent, our unweighted model average ensemble exceeds performance expectations."))
-          )
+      hr(),
+      fluidRow(
+        column(6,
+          id = "hcbarplotID",
+          highchartOutput("hcbarplot",  width = "100%", height = "550px"),
+          h4(tags$span(style = "font-size: 75%;", "The bar chart shows all three probabilities for the top 20 countries ordered from highest to lowest according to the type of event and region. Click on a bar for more case-specific information."))
+          # ,hr()
+        ),
+        column(6,
+          id = "mapPanel",
+          leafletOutput("map1", width = "100%", height = "550px"),
+          h4(tags$span(style = "font-size: 75%;", "The map focuses on type of event for the specified space. Additional information for each country is available by clicking on the map."))
+          # ,hr()
         )
-      )
-  )  ))
+      ),
+
+       hr(),
+
+
+      fluidRow(
+        column(12,
+               h3(tags$span(#style = "font-size:85%",
+                 "Select a country below or from the map above for case-specific information."))),
+        column(5,
+               selectInput("countrySelect", choices = countryNamesText,
+                           label = "", selectize = TRUE))
+      ),
+
+      fluidRow(
+        column(5, id = "hcbarplotID1",
+               highchartOutput("riskPlot", height = "525px"), br(), br(),
+               h4(tags$span(style = "font-size: 75%;", "The bar chart shows the estimated risk across all spaces for a country. Click on a bar to view that variable's time trend."))),
+        column(7, id = "hcbarplotID2",
+               highchartOutput("TimeSeriesPlot", height = "520px"), #br(),
+               checkboxGroupInput("checkGroup", label = h4(""), inline = T,
+                                  choiceNames = list(
+                                    tags$span("Associational", style = paste("color:", v2xcs_ccsi_color, "; font-weight: bold; font-size:80%;", sep = "")),
+                                    tags$span("Economic", style = paste("color:", v2x_pubcorr_color, "; font-weight: bold; font-size:80%;", sep = "")),
+                                    tags$span("Electoral", style = paste("color:", v2x_veracc_osp_color, "; font-weight: bold; font-size:80%;", sep = "")),
+                                    tags$span("Governing", style = paste("color:", v2x_horacc_osp_color, "; font-weight: bold; font-size:80%;", sep = "")),
+                                    tags$span("Individual", style = paste("color:", v2xcl_rol_color, "; font-weight: bold; font-size:80%;", sep = "")),
+                                    tags$span("Informational", style = paste("color:", v2x_freexp_altinf_color, "; font-weight: bold; font-size:80%;", sep = ""))),
+                                  choiceValues = c(
+                                    "v2xcs_ccsi",
+                                    "v2x_pubcorr",
+                                    "v2x_veracc_osp",
+                                    "v2x_horacc_osp",
+                                    "v2xcl_rol",
+                                    "v2x_freexp_altinf")),
+               h4(tags$span(style = "font-size: 75%;", "The time-series chart shows a country's scores for the V-Dem indices we use to capture each space.")))
+        )),
+      tabPanel("Tables",
+      wellPanel(class = "panel panel-default",
+      fluidRow(
+        column(12,
+               h2(tags$span(style = "font-weight:bold; color:#A51E36;font-size: 75%", "Data Table")),
+               h3("Use the options below to filter the table by spaces, regions, and/or countries. You can select more than one space and region/country. Empty search bars return all of the data. Download the data by clicking on the button below."),
+
+               h4("The columns labeled 'Estimate' report the estimated probability for opening/closing events within a space. The columns labeled 'Ranking' report where a country's specific estimate falls relative to all other countries, 1 (highest) to 169 (lowest). The columns labeled 'Category' break these rankings into five equal categories: Highest, High, Medium, Low, Lowest.")
+        )
+      ),
+
+      fluidRow(#column(1),
+               column(3,
+                      selectInput("space2", h4("Space"), multiple = TRUE,
+                                  choices = c("Associational",
+                                              "Economic",
+                                              "Electoral",
+                                              "Governing",
+                                              "Individual",
+                                              "Informational")#,selected = "Associational"
+                      )),
+               column(4,
+                      selectInput("region2", h4("Regions and/or Countries"), multiple = TRUE,
+                                  choices = c("Global",
+                                              "E. Europe and Central Asia",
+                                              "Latin America and the Caribbean",
+                                              "Middle East and N. Africa",
+                                              "Sub-Saharan Africa",
+                                              "W. Europe and N. America*",
+                                              "Asia and Pacific", countryNamesText))), #, selected = "Global"
+               column(3, h4("Update"), actionButton("update", style = "width: 100%;", label = "Enter"))
+      )),
+
+      fluidRow(
+        column(1), column(10, DT::dataTableOutput("tableprint"))),
+      fluidRow(column(1), column(3, downloadButton("downloadData", "Download Data"))),
+
+      hr()
+
+    ),
+    tabPanel("About",
+
+             div(
+               class = "outer",
+               tags$head(includeCSS("styles.css")),
+               fluidPage(
+                 id = "MainPage",
+
+                 wellPanel(class = "panel panel-default",
+                           fluidRow(
+                             column(12, h3("The Democratic Space Barometer is the product of a collaboration between Andreas Beger (Predictive Heuristics), Laura Maxwell (V-Dem), and Rick Morgan (V-Dem). A public repository of the code we use to generate our forecasts and develop this dashboard can be found ", a(href= "https://github.com/andybega/democratic-spaces", " here.", target="_blank"), br(),  br(), "The six conceptual dimensions we focus on come from the International Republican Institute's Closing Space Barometer, which includes an analytical framework for assessing the processes that facilitate a substantial reduction (closing events) within these six spaces. This framework was developed based on a series of workshops conducted with Democracy, Human Rights, and Governance (DRG) donors and implementing partners in 2016 and represent the conceptual features of democratic space which are most amenable to DRG assistance programs.", br(),  br(), "We adapted these conceptual spaces, expanded the scope to include substantial improvements (opening events), and developed an operationalization method to identify opening and closing events within each space. This dashboard, and the forecast that drive it, is the output of these efforts.")))),
+
+                 wellPanel(class = "panel panel-default",
+                           fluidRow(
+                             column(12,
+                                    tags$span(h3("The Democratic Space Barometer estimates the probability that a country will experience at least one ", tags$b("opening event"), " (shift towards more democratic governance) or at least one ", tags$b("closing event"), " (shift towards more autocratic governance) within a", tags$b(" two-year window (2020-2021)."), " We estimate the probability of opening and closing events across", tags$b("six spaces of democratic governance:")),
+
+                                              ## Adds hoverover popup text for each space
+                                              h3(tags$em(tags$b(a(id = "AssText2", style = "text-decoration: none;", " Associational, "),
+                                                                bsPopover(id = "AssText2", title = "<b>Civil Society",
+                                                                          content = "Measured using the <b>V-Dem&apos;s Core Civil Society Index</b>, which ranges from 0 to 1 and captures CSO autonomy from the state and citizens&apos; ability to freely and actively pursue their political and civic goals, however conceived. It takes into account CSO entry and exit, repression, and participation",
+                                                                          options = list(container = "body")),
+
+                                                                a(id = "EcoText2", style = "text-decoration: none;", " Economic, "),
+                                                                bsPopover(id = "EcoText2", title = "<b>Public Corruption",
+                                                                          content = "Measured using the <b>V-Dem&apos;s Public Corruption Index</b>, which ranges from 0 to 1 and captures the extent in which public sector employees grant favors in exchange for bribes (or other material inducements), and how often they steal, embezzle, or misappropriate public funds or other state resources for personal or family use.",
+                                                                          options = list(container = "body")),
+
+                                                                a(id = "ElecText2", style = "text-decoration: none;", " Electoral, "),
+                                                                bsPopover(id = "ElecText2", title = "<b>Citizens&apos; check on government",
+                                                                          content = "Measured using the <b>V-Dem&apos;s Vertical Accountability Index</b>, which ranges from 0 to 1 and captures the ability of the population to hold their government accountable through elections and political parties. It captures election quality, enfranchisement, direct election of chief executive, and opposition party freedoms.",
+                                                                          options = list(container = "body")),
+
+                                                                a(id = "GovText2", style = "text-decoration: none;", " Governing, "),
+                                                                bsPopover(id = "GovText2", title = "<b>Government checks and balance",
+                                                                          content = "Measured using the <b>V-Dem&apos;s Horizontal Accountability Index</b>, which ranges from 0 to 1 and captures the degree to which the legislative and judicial branches can hold the executive branch accountable as well as legislative and judical oversight over the bureaucracy and security services.",
+                                                                          options = list(container = "body")),
+
+                                                                a(id = "IndText2", style = "text-decoration: none;", " Individual, "),
+                                                                bsPopover(id = "IndText2", title = "<b>Individual freedoms",
+                                                                          content = "Measured using the <b>V-Dem&apos;s Equality Before the Law and Individual Liberty Index</b>, which ranges from 0 to 1 and captures the extent to which the laws are transparent and rigorously enforced and public administration impartial, and the extent to which citizens enjoy access to justice, secure property rights, freedom from forced labor, freedom of movement, physical integrity rights, and freedom of religion.",
+                                                                          options = list(container = "body")))), "and ",
+
+                                                 tags$em(tags$b(a(id = "infoText2", style = "text-decoration: none;", "Informational"),
+                                                                bsPopover(id = "infoText2", title = "<b>Media",
+                                                                          content = "Measured using the <b>V-Dem&apos;s Freedom of Expression and Alternative Sources of Information Index</b>, which ranges from 0 to 1 and captures media censorship, harassment of journalists, media bias, media self-censorship, whether the media is critical and pluralistic, as well as the freedom of discussion and academic and cultural expression.",
+                                                                          options = list(container = "body"))))),
+
+                                              h3("From year to year, these spaces can", tags$b("open (liberalize)"), "or", tags$b(" close (autocratize)."), "To capture these events, we focus on", tags$b(" year-to-year changes"), " within the V-Dem indices we identify for each space."),
+
+                                              h3("We classify opening (closing) events as year-to-year increases (decreases) in a country's V-Dem index score greater than (less than) or equal to an ", tags$b("empirically defined threshold"), " that is unique for each space", HTML("&ndash;"),
+
+                                                 tags$em(tags$b(a(id = "ThresText", style = "text-decoration: none;", " six thresholds altogether."))),
+                                                 bsPopover(id = "ThresText", title = "<b>Opening/Closing event thresholds",
+                                                           content = "<b>Year-to-year changes in <br>select V-Dem index</b><br> Associational: <b>+/- 0.05</b><br> Economic: <b>+/- 0.03</b><br>Electoral: <b>+/- 0.08</b><br>Governing: <b>+/- 0.06</b><br>Individual: <b>+/- 0.04</b><br>Informational: <b>+/- 0.05</b><br><br>The V-Dem indices we use to measure each space are on a continuous scale from 0 (autocratic) to 1 (democratic).",
+                                                           options = list(container = "body"))),
+
+                                              h3("We use a set of", tags$b(" 12 random forest classification models")," and a country-year dataset with global coverage (169 countries) from 1970 to 2019 to derive our risk estimates. Please see our working paper for more information on our measurement and modeling strategies."))
+                             ))
+                 )),
+
+               wellPanel(class = "panel panel-default",
+                         fluidRow(
+                           column(12,
+                                  h2(tags$span(style = "font-size: 75%; font-weight:bold;", "Interpretation of results"))),
+
+                           column(12,
+                                  h3("Our models estimate two probabilities for each country:"),
+                                  htmltools::withTags(
+                                    h3(ol(
+                                      li("That there will be at least one, but maybe two,", b(" closing"), "events over the next two years"),
+                                      li("That there will be at least one, but maybe two,", b(" opening"), "events over the next two years")),
+                                      "From these two probabilities we also derive the probability:",
+                                      br(),
+                                      br(),
+                                      ol(start = "3",
+                                         li("That there will be ", b(" no closing and no opening events"), " over the next two years"))
+                                    )),
+
+                                  h3(tags$b("These three probabilities do not sum up to one. The occurrence of a substantial opening event and a substantial closing event over a two-year span are not mutually exclusive events."), "Though relatively rare, a country can experience back-to-back opening and closing events within the same space."),
+
+                                  h3("The estimated probability for \"any opening event within the next two years\" really captures three distinct combinations of events:", tags$b(" one opening and no closing, two opening and no closing, as well as one opening and one closing."), " Similarly for \"any closing event within the next two years\". The probability for \"no change\" on the other hand only captures one scenario: no opening or closing events in the two-year window."),
+
+                                  h3("As a result of these relationships, it is sometimes the case that the forecast models produce relatively large probabilities for both opening and closing events in a country. This can be seen in the visualization tools we present in the 'Figures' tab. One way to think of these instances is that the situation in that country in that space is very fluid, potentially indicating that the country is at a crossroads and prime for intervention. This, of course, requires more case- and space-specific evidence than our models can provide."),
+                                  hr()
+                           )
+                         )))),
+    tags$style(type = 'text/css',
+               '.navbar { background-color: white; color: #A51E36; font-weight:bold;}',
+               '.navbar-default .navbar-brand:hover {color:  #A51E36;}',
+               '.navbar-default .navbar-brand{color: #A51E36; font-weight:bold;}',
+               '.navbar-default .navbar-nav >  li > a {background-color: white; color: #A51E36; font-weight:bold;}',
+               '.navbar-default .navbar-nav > li > .active > a {background-color: #A51E36; color: white ; font-weight:bold;}'
+
+    )
+  )

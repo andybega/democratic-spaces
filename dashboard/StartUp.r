@@ -1,17 +1,15 @@
-# install.packages("shiny")
+# install.packages("DT")
 
-library("shiny")
+library(here)
+library(DT)
+library(shiny)
+library(leaflet)
+library(highcharter)
+library(shinyWidgets)
+library(shinyBS)
 
-{
- ##
-  ## CHANGE THE WOKING DIRECTORY!
+getwd()
+# ## CHECK WOKING DIRECTORY!
+setwd(here::here(""))
 
-  if (Sys.info()["user"] == "rickm") {
-    setwd("C:/Users/rickm/Dropbox/VForecast Beta App/")
-  }
-  if (Sys.info()["user"] == "xricmo") {
-    setwd("C:/Users/xricmo/Dropbox/VForecast Beta App/")
-  }
-}
-
-runApp("ForecastApp")
+runApp()

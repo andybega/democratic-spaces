@@ -1,27 +1,52 @@
 input[type="number"] {
   max-width: 80%;
 }
-.leaflet-container { background-color: #F5F5F6; 
+
+input[type=checkbox] {
+                    transform: scale(0.8);
+           }
+           
+.leaflet-container { 
+  background-color: #F5F5F6; 
 }
 
-div.outer {
-  top: 41px;
+.panel {
+  padding: 2px;
+  border: none; 
+  background-color: #ffffff; 
+  max-width: 750px;
+  margin: auto;
+  }
+  
+.outer {
+  top: 40px;
   left: 0; 
   right: 0;
   bottom: 0;
-  padding: 0;
 }
 body, label, input, button, select { 
   font-family: 'Helvetica Neue', Helvetica;
   font-weight: 200;
 }
-h1, h2, h3 { 
+h1, h2 { 
   font-weight: 400; 
-  color: #861B58;
+  /*color: #861B58;*/
+  /*color: #002649;*/
+  color: #A51E36;
   }
-h4 { 
-  font-weight: 400; 
+h4, h3 { 
+  font-size: 125%; 
+  color: #002649;
   }
+h5 { 
+  color: #002649;
+  }
+.popover {
+  color: #002649;
+  }
+a{ 
+   text-decoration: none; 
+        } 
 
 #mapPanel {
   right: auto;
@@ -29,16 +54,10 @@ h4 {
 #barplotPanel1 {
   left: -25px;
 }
-#densityplotsPanel {
-  left: 100px;
-}
+
 #barplot1 {
   cursor: pointer;
 }
-.panel {
-    border: none; 
-    background-color: #ffffff; 
-  }
 #dataTable {
   font-size: 95%;
 }
