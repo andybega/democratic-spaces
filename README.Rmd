@@ -65,14 +65,14 @@ To update the forecasts:
 
 ## Citation
 
-Andreas Beger, Richard K. Morgan, and Laura Maxwell, 2020, “The Democratic Spaces Barometer: global forecasts of autocratization and democratization”, <doi>
+Andreas Beger, Richard K. Morgan, and Laura Maxwell, 2020, “The Democratic Spaces Barometer: global forecasts of autocratization and democratization”, <https://www.v-dem.net/en/analysis/DemSpace/>
 
 ```bibtex
 @misc{beger2020democratic,
   auhor = {Beger, Andreas and Morgan, Richard K. and Maxwell, Laura},
-  title = {The Democratic Spaces Barometer: global forecasts of autocratization and democratization},
+  title = {The Democratic Spaces Barometer: Global Forecasts of Autocratization and Democratization},
   year  = {2020},
-  url   = {},
+  url   = {https://www.v-dem.net/en/analysis/DemSpace/},
 }
 ```
 

@@ -94,14 +94,14 @@ To update the forecasts:
 
 Andreas Beger, Richard K. Morgan, and Laura Maxwell, 2020, “The
 Democratic Spaces Barometer: global forecasts of autocratization and
-democratization”, <doi>
+democratization”, <https://www.v-dem.net/en/analysis/DemSpace/>
 
 ``` bibtex
 @misc{beger2020democratic,
   auhor = {Beger, Andreas and Morgan, Richard K. and Maxwell, Laura},
-  title = {The Democratic Spaces Barometer: global forecasts of autocratization and democratization},
+  title = {The Democratic Spaces Barometer: Global Forecasts of Autocratization and Democratization},
   year  = {2020},
-  url   = {},
+  url   = {https://www.v-dem.net/en/analysis/DemSpace/},
 }
 ```
 
@@ -151,13 +151,13 @@ output of these efforts.
 sessionInfo()
 ```
 
-    ## R version 3.6.1 (2019-07-05)
-    ## Platform: x86_64-apple-darwin15.6.0 (64-bit)
+    ## R version 4.0.0 (2020-04-24)
+    ## Platform: x86_64-apple-darwin17.0 (64-bit)
     ## Running under: macOS Catalina 10.15.4
     ## 
     ## Matrix products: default
-    ## BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
-    ## LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+    ## BLAS:   /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRblas.dylib
+    ## LAPACK: /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRlapack.dylib
     ## 
     ## locale:
     ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
@@ -166,10 +166,10 @@ sessionInfo()
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] compiler_3.6.1  magrittr_1.5    tools_3.6.1     htmltools_0.3.6
-    ##  [5] yaml_2.2.1      Rcpp_1.0.4      stringi_1.4.6   rmarkdown_1.18 
-    ##  [9] knitr_1.28      stringr_1.4.0   xfun_0.12       digest_0.6.25  
-    ## [13] evaluate_0.14
+    ##  [1] compiler_4.0.0  magrittr_1.5    tools_4.0.0     htmltools_0.4.0
+    ##  [5] yaml_2.2.1      Rcpp_1.0.4.6    stringi_1.4.6   rmarkdown_2.1  
+    ##  [9] knitr_1.28      stringr_1.4.0   xfun_0.13       digest_0.6.25  
+    ## [13] rlang_0.4.6     evaluate_0.14
 
 ``` r
 packs <- readLines("required-packages.txt")
@@ -179,31 +179,24 @@ rownames(packs) <- NULL
 packs
 ```
 
-    ##         Package    Version
-    ## 1     demspaces      0.2.2
-    ## 2      doFuture      0.9.0
-    ## 3         dplyr      0.8.5
-    ## 4        future     1.16.0
-    ## 5        glmnet     2.0-18
-    ## 6          here        0.1
-    ## 7   highcharter      0.7.0
-    ## 8      jsonlite      1.6.1
-    ## 9       leaflet      2.0.3
-    ## 10          lgr      0.3.3
-    ## 11     magrittr        1.5
-    ## 12       ranger     0.11.2
-    ## 13        readr      1.3.1
-    ## 14        rgdal      1.4-4
-    ## 15        rgeos      0.5-1
-    ## 16   rmapshaper      0.4.1
-    ## 17           sf      0.8-0
-    ## 18        shiny      1.3.2
-    ## 19      shinyBS       0.61
-    ## 20 shinyWidgets      0.5.0
-    ## 21        skimr      1.0.7
-    ## 22       states 0.2.2.9008
-    ## 23      stringr      1.4.0
-    ## 24       tibble      3.0.0
-    ## 25        tidyr      1.0.2
-    ## 26    tidyverse      1.2.1
-    ## 27          zoo      1.8-6
+    ##      Package    Version
+    ## 1   doFuture      0.9.0
+    ## 2      dplyr      0.8.5
+    ## 3     future     1.17.0
+    ## 4     glmnet      3.0-2
+    ## 5       here        0.1
+    ## 6   jsonlite      1.6.1
+    ## 7    leaflet      2.0.3
+    ## 8        lgr      0.3.4
+    ## 9   magrittr        1.5
+    ## 10    ranger     0.12.1
+    ## 11     readr      1.3.1
+    ## 12     rgeos      0.5-2
+    ## 13        sf      0.9-2
+    ## 14     shiny    1.4.0.2
+    ## 15    states 0.2.2.9008
+    ## 16   stringr      1.4.0
+    ## 17    tibble      3.0.1
+    ## 18     tidyr      1.0.2
+    ## 19 tidyverse      1.3.0
+    ## 20       zoo      1.8-7
