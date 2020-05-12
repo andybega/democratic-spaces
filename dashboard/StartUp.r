@@ -1,16 +1,17 @@
 # install.packages("shiny")
 
-library(here)
-library(shiny)
-library(leaflet)
-library(highcharter)
-library(shinyWidgets)
-library(shinyBS)
+library("shiny")
 
-setwd(here::here("dashboard"))
+{
+ ##
+  ## CHANGE THE WOKING DIRECTORY!
 
-# getwd()
-# ## CHECK WOKING DIRECTORY!
-## It should point to "../GitHub/democratic-spaces/dashboard"
+  if (Sys.info()["user"] == "rickm") {
+    setwd("C:/Users/rickm/Dropbox/VForecast Beta App/")
+  }
+  if (Sys.info()["user"] == "xricmo") {
+    setwd("C:/Users/xricmo/Dropbox/VForecast Beta App/")
+  }
+}
 
-runApp()
+runApp("ForecastApp")
