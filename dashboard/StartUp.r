@@ -1,16 +1,15 @@
-# install.packages("shiny")
+# install.packages("DT")
 
 library(here)
+library(DT)
 library(shiny)
 library(leaflet)
 library(highcharter)
 library(shinyWidgets)
 library(shinyBS)
 
-setwd(here::here("dashboard"))
-
-# getwd()
+getwd()
 # ## CHECK WOKING DIRECTORY!
-## It should point to "../GitHub/democratic-spaces/dashboard"
+setwd(here::here(""))
 
 runApp()

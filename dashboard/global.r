@@ -8,7 +8,7 @@ library(shinyWidgets)
 library(shinyBS)
 library(here)
 
-setwd(here::here("dashboard/"))
+# setwd(here::here("dashboard/"))
 
 # packs <- c("tidyverse", "rio", "leaflet", "shiny", "highcharter", "shinyWidgets", "shinyBS")
 # # install.packages(packs, dependencies = TRUE)
