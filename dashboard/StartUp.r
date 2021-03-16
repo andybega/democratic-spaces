@@ -10,6 +10,6 @@ library(shinyBS)
 
 getwd()
 # ## CHECK WOKING DIRECTORY!
-setwd(here::here(""))
+setwd(here::here("dashboard"))
 
 runApp()
