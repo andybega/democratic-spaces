@@ -98,7 +98,7 @@ democratization”, <https://www.v-dem.net/en/analysis/DemSpace/>
 
 ``` bibtex
 @misc{beger2020democratic,
-  auhor = {Beger, Andreas and Morgan, Richard K. and Maxwell, Laura},
+  author = {Beger, Andreas and Morgan, Richard K. and Maxwell, Laura},
   title = {The Democratic Spaces Barometer: Global Forecasts of Autocratization and Democratization},
   year  = {2020},
   url   = {https://www.v-dem.net/en/analysis/DemSpace/},
