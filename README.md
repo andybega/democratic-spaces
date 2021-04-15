@@ -1,6 +1,10 @@
 Democratic Spaces Barometer
 ================
 
+_NOTE: this repo has moved to https://github.com/vdeminstitute/demspaces_
+
+******
+
 The Demoractic Spaces Barometer forecasts significant changes, both
 democratizing and autocratizing, for six facets of democratic governance
 for all major countries in the world 2 years ahead. The current
